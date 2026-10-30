@@ -1,0 +1,1042 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#071A69">
+<link rel="manifest" href="manifest.json"><link rel="icon" href="icon.png"><link rel="apple-touch-icon" href="icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="HWA ITIC">
+<title>HWA ITIC 2026 Planner</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<style>:root{padding-top:env(safe-area-inset-top,0px)}body{margin:0;-webkit-text-size-adjust:100%}[hidden]{display:none!important}button,select{touch-action:manipulation}
+body.locked header,body.locked nav,body.locked main,body.locked footer{filter:blur(6px);pointer-events:none;user-select:none}
+.pingate{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:rgba(7,26,105,.55);padding:16px}
+.pinbox{background:#fff;color:#18233B;border-radius:14px;padding:22px;width:min(360px,100%);display:grid;gap:12px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.35)}
+.pinbox img{width:200px;margin:0 auto}.pinbox input{font:inherit;font-size:22px;letter-spacing:.3em;text-align:center;padding:10px;border:1px solid #D9E0EB;border-radius:10px}
+.pinbox button{font:inherit;font-weight:700;background:#D14430;color:#fff;border:0;border-radius:10px;padding:11px;cursor:pointer}.pinbox p{margin:0;font-size:13px;color:#5A6781}</style>
+</head><body>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+/* Layout: navy masthead with KPI strip, tab bar, then one working view (day grid / client briefs / team agendas / flags); briefs open in a side drawer. */
+:root{
+  --navy:#071A69; --red:#D14430;
+  --bg:#F4F6FA; --surface:#FFFFFF; --surface-2:#EDF1F7; --line:#D9E0EB;
+  --fg:#18233B; --muted:#5A6781; --navy-ink:#071A69;
+  --ok:#1E7F4F; --ok-bg:#E3F3EA; --warn:#A35C00; --warn-bg:#FCEFD9; --flex:#2F5AA8; --flex-bg:#E4ECFA; --bad:#B42318; --bad-bg:#FBE4E2;
+  --pD:#071A69; --pS:#D14430; --pC:#2D7D78; --pX:#7A4FA0;
+  --pD-bg:#E2E8F4; --pS-bg:#F8E3E0; --pC-bg:#DDF0EE; --pX-bg:#EDE4F5;
+  --font:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  --shadow:0 10px 30px rgba(20,32,60,.18);
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E1424; --surface:#161E33; --surface-2:#1D2741; --line:#2B3756;
+  --fg:#E6EAF3; --muted:#9AA6C0; --navy-ink:#AFC2EE;
+  --ok:#5CC98F; --ok-bg:#16352A; --warn:#F0B35A; --warn-bg:#3A2C14; --flex:#8FB2F2; --flex-bg:#1C2B4D; --bad:#F2877D; --bad-bg:#3D1C1A;
+  --pD:#8FA8E0; --pS:#EE7F72; --pC:#5FC2BA; --pX:#B996DA;
+  --pD-bg:#1F2C4C; --pS-bg:#3A1E1D; --pC-bg:#173532; --pX-bg:#2D2240;
+  --shadow:0 10px 30px rgba(0,0,0,.5); color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0E1424; --surface:#161E33; --surface-2:#1D2741; --line:#2B3756;
+  --fg:#E6EAF3; --muted:#9AA6C0; --navy-ink:#AFC2EE;
+  --ok:#5CC98F; --ok-bg:#16352A; --warn:#F0B35A; --warn-bg:#3A2C14; --flex:#8FB2F2; --flex-bg:#1C2B4D; --bad:#F2877D; --bad-bg:#3D1C1A;
+  --pD:#8FA8E0; --pS:#EE7F72; --pC:#5FC2BA; --pX:#B996DA;
+  --pD-bg:#1F2C4C; --pS-bg:#3A1E1D; --pC-bg:#173532; --pX-bg:#2D2240;
+  --shadow:0 10px 30px rgba(0,0,0,.5); color-scheme:dark }
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--fg);font-family:var(--font);font-size:14px;line-height:1.45;font-variant-numeric:tabular-nums}
+button{font:inherit;color:inherit}
+.wrap{max-width:1280px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* masthead */
+.mast{background:#071A69;color:#fff}
+.mast .wrap{padding-block:18px 16px;display:flex;flex-wrap:wrap;gap:16px 28px;align-items:center;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:14px;min-width:0}
+.logo{background:#fff;border-radius:10px;padding:6px 10px;display:flex;align-items:center}
+.logo img{display:block;height:76px;width:auto}
+.brand h1{font-size:20px;line-height:1.2;margin:0;font-weight:700;text-wrap:balance}
+.brand p{margin:2px 0 0;color:#C7D2EA;font-size:13px}
+.kpis{display:flex;flex-wrap:wrap;gap:8px}
+.kpi{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:6px 12px;min-width:86px}
+.kpi b{display:block;font-size:20px;font-weight:700}
+.kpi span{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#C7D2EA}
+.kpi.red b{color:#FF9B8F}
+
+/* tabs */
+.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+.tabs .wrap{display:flex;gap:4px;overflow-x:auto}
+.tab{background:none;border:0;border-bottom:3px solid transparent;padding:12px 14px;font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap}
+.tab[aria-selected="true"]{color:var(--navy-ink);border-bottom-color:var(--red)}
+.tab:focus-visible,.chip:focus-visible,.card:focus-visible,.blk:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+.tab .n{display:inline-block;margin-left:6px;background:var(--surface-2);border-radius:10px;padding:0 7px;font-size:12px}
+
+main .wrap{padding-block:18px 48px}
+.view[hidden]{display:none}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.sp{justify-content:space-between}
+h2{font-size:17px;margin:0;color:var(--navy-ink)}
+.sub{color:var(--muted);font-size:13px;margin:4px 0 0}
+
+/* segmented + chips */
+.seg{display:inline-flex;background:var(--surface-2);border-radius:8px;padding:3px;gap:2px;flex-wrap:wrap}
+.seg button{border:0;background:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-weight:600;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--navy-ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+
+/* person tokens */
+.av{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;font-size:11px;font-weight:700;color:#fff}
+.av.D{background:var(--pD)}.av.S{background:var(--pS)}.av.C{background:var(--pC)}.av.X{background:var(--pX)}
+:root:not([data-theme="light"]) .av{color:#fff}
+.avs{display:inline-flex;gap:3px}
+
+/* status pills */
+.pill{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 8px;border-radius:20px;white-space:nowrap}
+.st-confirmed{background:var(--ok-bg);color:var(--ok)}
+.st-awaiting{background:var(--warn-bg);color:var(--warn)}
+.st-flexible{background:var(--flex-bg);color:var(--flex)}
+.tag-existing{background:var(--navy);color:#fff}
+:root[data-theme="dark"] .tag-existing{background:#AFC2EE;color:#0E1424}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .tag-existing{background:#AFC2EE;color:#0E1424}}
+.tag-verify{background:var(--bad-bg);color:var(--bad)}
+.fit{display:inline-flex;gap:2px;vertical-align:middle}
+.fit i{width:8px;height:8px;border-radius:2px;background:var(--line)}
+.fit i.on{background:var(--red)}
+
+/* schedule grid */
+.gridwrap{overflow-x:auto;margin-top:14px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.grid{display:grid;grid-template-columns:58px repeat(4,minmax(130px,1fr));min-width:620px;position:relative}
+.gh{position:sticky;top:0;background:var(--surface);border-bottom:1px solid var(--line);padding:10px 8px;font-weight:700;font-size:13px;display:flex;gap:8px;align-items:center;z-index:2}
+.gh small{font-weight:500;color:var(--muted)}
+.tcell{font-size:11px;color:var(--muted);padding:0 6px;border-top:1px solid var(--line);text-align:right;line-height:1}
+.tcell.half{border-top-style:dashed;border-top-color:transparent}
+.slot{border-top:1px solid var(--line);border-left:1px solid var(--line)}
+.slot.q{border-top-color:transparent}
+.slot.free{background:repeating-linear-gradient(135deg,transparent 0 6px,var(--surface-2) 6px 7px)}
+.blk{margin:2px 4px;width:calc(100% - 8px);justify-self:stretch;border-radius:7px;padding:5px 7px;font-size:12px;line-height:1.25;cursor:pointer;overflow:hidden;border-left:4px solid;text-align:left;background:var(--surface-2);border-top:0;border-right:0;border-bottom:0;display:flex;flex-direction:column;gap:2px;z-index:1;min-width:0}
+.blk b{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.blk span{color:var(--muted);font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.blk.D{border-left-color:var(--pD);background:var(--pD-bg)}
+.blk.S{border-left-color:var(--pS);background:var(--pS-bg)}
+.blk.C{border-left-color:var(--pC);background:var(--pC-bg)}
+.blk.X{border-left-color:var(--pX);background:var(--pX-bg)}
+.blk.aw{outline:2px dashed var(--warn);outline-offset:-2px}
+.blk.lead b::after{content:" ★";color:var(--red)}
+.blk:hover{filter:brightness(.97)}
+.blk.short{padding:3px 7px;justify-content:center}.blk.short span{display:none}
+.daynote{margin-top:10px;font-size:13px;color:var(--muted)}
+
+/* clients */
+.filters{display:grid;grid-template-columns:2fr repeat(5,1fr);gap:8px;margin-top:14px}
+.filters input,.filters select{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg)}
+.filters label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px;margin-top:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;cursor:pointer;display:flex;flex-direction:column;gap:8px;text-align:left;min-width:0}
+.card:hover{border-color:var(--navy-ink)}
+.card h3{margin:0;font-size:15px;line-height:1.3;color:var(--fg)}
+.meta{font-size:12px;color:var(--muted)}
+.card .lbl{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.card p{margin:0;font-size:13px}
+.card .prop{border-top:1px solid var(--line);padding-top:8px}
+.when{font-weight:700;color:var(--navy-ink);font-size:12px}
+.empty{padding:30px;text-align:center;color:var(--muted)}
+
+/* team */
+.team{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:14px}
+.pcol{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden;min-width:0}
+.phead{padding:12px 14px;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:center}
+.phead .av{width:34px;height:34px;font-size:13px}
+.phead h3{margin:0;font-size:14px}
+.phead p{margin:0;font-size:12px;color:var(--muted)}
+.load{display:flex;gap:6px;padding:8px 14px;border-bottom:1px solid var(--line);font-size:12px;color:var(--muted);flex-wrap:wrap}
+.load b{color:var(--fg)}
+.dayh{padding:8px 14px 4px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);background:var(--surface-2)}
+.ag{list-style:none;margin:0;padding:0}
+.ag li{display:flex;gap:10px;padding:8px 14px;border-top:1px solid var(--line);cursor:pointer;font-size:13px}
+.ag li:hover{background:var(--surface-2)}
+.ag li .t{width:46px;flex:none;font-weight:600;color:var(--navy-ink);font-size:12px}
+.ag li .c{min-width:0}
+.ag li .c b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ag li .c span{font-size:12px;color:var(--muted)}
+.ag li.gap{cursor:default;color:var(--muted);font-size:12px;font-style:italic}
+.ag li.gap:hover{background:none}
+
+/* flags */
+.flags{display:grid;gap:10px;margin-top:14px}
+.flag{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:8px;padding:12px 14px}
+.flag.hi{border-left-color:var(--bad)}
+.flag.info{border-left-color:var(--flex)}
+.flag h4{margin:0 0 4px;font-size:14px}
+.flag p{margin:0;color:var(--muted);font-size:13px;max-width:80ch}
+
+/* drawer */
+.scrim{position:fixed;inset:0;background:rgba(10,16,32,.45);z-index:20}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(560px,100%);background:var(--surface);z-index:21;box-shadow:var(--shadow);display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);padding-right:env(safe-area-inset-right,0px)}
+.dhead{background:#071A69;color:#fff;padding:16px 18px;display:flex;gap:12px;align-items:flex-start;justify-content:space-between}
+.dhead h3{margin:0;font-size:19px;text-wrap:balance}
+.dhead p{margin:4px 0 0;color:#C7D2EA;font-size:13px}
+.xbtn{background:rgba(255,255,255,.12);border:0;color:#fff;border-radius:8px;width:34px;height:34px;cursor:pointer;font-size:18px;flex:none}
+.dbody{overflow-y:auto;padding:16px 18px 30px;display:flex;flex-direction:column;gap:16px}
+.facts{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:13px}
+.facts dt{color:var(--muted)}
+.facts dd{margin:0;font-weight:600;min-width:0}
+.sec h5{margin:0 0 6px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--red)}
+.sec p{margin:0}
+.sec ul{margin:0;padding-left:18px;display:grid;gap:4px}
+.obj{display:grid;gap:8px}
+.obj div{background:var(--surface-2);border-radius:8px;padding:8px 10px;font-size:13px}
+.obj div b{display:block;margin-bottom:2px}
+.goal{background:var(--pS-bg);border-radius:8px;padding:10px 12px;font-weight:600}
+.alert{background:var(--warn-bg);color:var(--warn);border-radius:8px;padding:8px 10px;font-size:13px;font-weight:600}
+.alert.v{background:var(--bad-bg);color:var(--bad)}
+.pick{display:flex;flex-wrap:wrap;gap:6px}
+.pk{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);border-radius:20px;padding:4px 12px 4px 4px;cursor:pointer;font-weight:600;font-size:13px;opacity:.6}
+.pk[aria-pressed="true"]{opacity:1;border-color:var(--navy-ink);background:var(--surface-2)}
+.pk[aria-pressed="true"]::after{content:"✓";color:var(--ok);margin-left:2px}
+#leadSel{padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg)}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:7px 14px;font-weight:600;cursor:pointer}
+.btn.pri{background:var(--red);border-color:var(--red);color:#fff}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.editor{background:var(--surface-2);border-radius:10px;padding:12px}
+.st-done{background:var(--pC-bg);color:var(--pC)}
+.st-cancelled{background:var(--surface-2);color:var(--muted);text-decoration:line-through}
+.blk.dn{opacity:.75}
+.card.cx{opacity:.6}
+.slot.free{cursor:copy}
+.slot.free:hover{background:var(--pS-bg)}
+.btn.danger{color:var(--bad);border-color:var(--bad)}
+.inp,.form input,.form select,.form textarea{padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg);font:inherit;width:100%}
+.row .inp{width:auto}
+.editor summary{cursor:pointer;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--red);font-weight:700}
+.editor[open] summary{margin-bottom:10px}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:8px 10px}
+.form .w{grid-column:1/-1}
+.fld{display:flex;flex-direction:column;gap:3px;min-width:0}
+.fld label,.fld>.meta{font-size:12px;color:var(--muted);font-weight:600}
+.fu{display:inline-flex;gap:6px;align-items:center;font-size:13px;cursor:pointer}
+.nowc .nowb{padding:10px 14px;display:grid;gap:8px}
+.nowm{display:flex;flex-direction:column;gap:2px;text-align:left;border:1px solid var(--line);background:var(--surface-2);border-radius:8px;padding:8px 10px;cursor:pointer;min-width:0}
+.nowm b{font-size:14px}
+.nowm .lbl,.free-now .lbl{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--red);font-weight:700}
+.free-now{display:flex;flex-direction:column;gap:6px;align-items:flex-start;border:1px dashed var(--line);border-radius:8px;padding:8px 10px}
+.pipesum{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.kp{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px;min-width:140px}
+.kp b{display:block;font-size:20px;color:var(--navy-ink)}
+.kp span{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.kp.warn b{color:var(--warn)}
+.tablewrap{overflow-x:auto;margin-top:12px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.pipe{width:100%;border-collapse:collapse;min-width:860px;font-size:13px}
+.pipe th{text-align:left;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:10px;border-bottom:1px solid var(--line)}
+.pipe td{padding:10px;border-top:1px solid var(--line);vertical-align:top}
+.pipe tbody tr[data-id]{cursor:pointer}
+.pipe tbody tr[data-id]:hover{background:var(--surface-2)}
+.pipe .num{text-align:right;white-space:nowrap}
+@media (max-width:560px){.form{grid-template-columns:1fr}}
+.blk.dbl{padding:4px 5px}
+.blk.dbl span{display:none}
+.blk.dbl b{font-size:11px}
+.me{display:flex;align-items:center;gap:6px;margin-left:auto;padding:6px 0 6px 12px;font-size:13px;color:var(--muted);white-space:nowrap;order:9}
+.me select{padding:5px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg);font:inherit}
+.gh.mine{background:var(--pS-bg)}
+.slot.mine{box-shadow:inset 3px 0 0 var(--red)}
+.nowc.mine{border-color:var(--red);box-shadow:0 0 0 2px var(--pS-bg)}
+.sync{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#C7D2EA}
+.sync i{width:8px;height:8px;border-radius:50%;background:#F0B35A}
+.sync.on i{background:#5CC98F}
+.slots{display:grid;gap:8px;margin-top:14px}
+.tslot{display:grid;grid-template-columns:96px minmax(0,1fr);gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.tlabel{display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.tlabel b{font-size:17px;color:var(--navy-ink)}
+.pill.par{background:var(--pS-bg);color:var(--red)}
+.tcards{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch;min-width:0}
+.mcard{flex:1 1 260px;max-width:420px;min-width:0;display:flex;flex-direction:column;gap:6px;text-align:left;border:1px solid var(--line);border-radius:8px;padding:9px 11px;background:var(--surface-2);cursor:pointer}
+.mcard:hover{border-color:var(--navy-ink)}
+.mcard.aw{border:2px dashed var(--warn)}
+.who{display:flex;flex-wrap:wrap;gap:4px}
+.wchip{display:inline-flex;align-items:center;gap:5px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:2px 8px 2px 2px;font-size:12px;font-weight:600}
+.wchip .av{width:20px;height:20px;font-size:10px}
+.wchip.ld{border-color:var(--red)}
+.cont{flex-basis:100%;font-size:12px;color:var(--muted)}
+.freebox{flex-basis:100%;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;border-top:1px dashed var(--line);padding-top:6px}
+@media (max-width:560px){.tslot{grid-template-columns:1fr}.tlabel{flex-direction:row;align-items:center}}
+.ti{display:none;width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.ls,.msub{display:none}
+.mrow{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;margin-top:8px}
+.mast .me{margin:0;padding:0;color:#C7D2EA;order:0}
+.mast .me select{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.25)}
+.mast .me select option{color:#18233B}
+@media (max-width:700px){
+  body{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
+  .mast .wrap{padding-block:10px 10px;gap:8px}
+  .brand{gap:10px;width:100%}
+  .mast .logo{padding:3px 6px;border-radius:8px}.mast .logo img{height:40px}
+  .brand h1{font-size:16px}.brand p{display:none}.brand .msub{display:block;font-size:12px;margin:1px 0 0}
+  .mast .wrap>div:last-child{width:100%}
+  .kpis{flex-wrap:nowrap;overflow-x:auto;gap:6px;scrollbar-width:none;margin-inline:-2px}
+  .kpis::-webkit-scrollbar{display:none}
+  .kpi{min-width:0;flex:none;padding:4px 9px;border-radius:7px}.kpi b{font-size:16px;display:inline;margin-right:5px}.kpi span{font-size:10px}
+  .mrow{justify-content:space-between;margin-top:6px}
+  .mast .me select{font-size:16px;padding:4px 6px}
+  .tabs{position:fixed;top:auto;bottom:0;left:0;right:0;border-bottom:0;border-top:1px solid var(--line);z-index:15;padding-bottom:env(safe-area-inset-bottom,0px);box-shadow:0 -4px 16px rgba(7,26,105,.08)}
+  .tabs .wrap{padding:0 max(4px,env(safe-area-inset-left,0px));justify-content:space-around;gap:0;overflow:visible}
+  .tab{flex:1 1 0;display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 2px 6px;border-bottom:0;border-top:3px solid transparent;font-size:11px;position:relative;min-width:0}
+  .tab[aria-selected="true"]{border-top-color:var(--red);border-bottom-color:transparent}
+  .ti{display:block}.lf{display:none}.ls{display:inline}
+  .tab .n{position:absolute;top:3px;left:calc(50% + 6px);margin:0;padding:0 5px;font-size:9.5px;background:var(--red);color:#fff}
+  .tab .n:empty{display:none}
+  main .wrap{padding-block:12px 24px}
+  .sub,.legend{display:none}
+  h2{font-size:16px}
+  #v-schedule>.row.sp:first-child{position:sticky;top:env(safe-area-inset-top,0px);z-index:4;background:var(--bg);margin-inline:calc(-1 * max(16px,env(safe-area-inset-left,0px)));padding:8px max(16px,env(safe-area-inset-left,0px));border-bottom:1px solid var(--line)}
+  #v-schedule>.row.sp:first-child h2{display:none}
+  #v-schedule>.row.sp:first-child>div:first-child{display:none}
+  .ctrl{width:100%;flex-wrap:nowrap;overflow-x:auto;gap:6px;scrollbar-width:none}
+  .ctrl::-webkit-scrollbar{display:none}
+  .seg{flex-wrap:nowrap;flex:none}.seg button{padding:7px 10px;white-space:nowrap}
+  #addWalk{flex:none;white-space:nowrap;padding:7px 12px}
+  .slots{margin-top:10px;gap:8px}
+  .tslot{padding:8px 10px;gap:6px}
+  .tlabel b{font-size:15px}
+  .mcard{flex:1 1 100%;max-width:none;padding:8px 10px}
+  .freebox{padding-top:4px}.freebox .btn{padding:6px 10px;font-size:13px}
+  .filters{grid-template-columns:1fr 1fr;gap:6px}
+  .filters input,.filters select,.inp,.form input,.form select,.form textarea,#leadSel,#nowDay,#nowTime{font-size:16px}
+  #v-now .row.sp>.row{width:100%}
+  .cards{gap:8px}.card{padding:12px}
+  .drawer{width:100%}
+  .dhead{position:sticky;top:0;z-index:2;padding:12px 14px}
+  .dbody{padding:12px 14px 40px}
+  .pk{padding:6px 12px 6px 6px;font-size:14px}
+  .btn{padding:9px 14px}
+  .pipesum .kp{flex:1 1 40%;min-width:0;padding:8px 10px}.kp b{font-size:17px}
+  footer{padding-bottom:20px}
+}
+@media (max-width:360px){.tab{font-size:10px}.ti{width:20px;height:20px}}
+footer{color:var(--muted);font-size:12px;padding-block:0 30px}
+
+@media (max-width:900px){.team{grid-template-columns:repeat(2,minmax(0,1fr))}.filters{grid-template-columns:1fr 1fr}.filters .q{grid-column:1/-1}}
+@media (max-width:560px){.logo img{height:58px}.team{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.brand h1{font-size:17px}.kpi{min-width:70px;padding:5px 9px}.kpi b{font-size:17px}}
+@media (prefers-reduced-motion:no-preference){.drawer{animation:slide .18s ease-out}@keyframes slide{from{transform:translateX(24px);opacity:.6}to{transform:none;opacity:1}}}
+</style>
+
+<header class="mast">
+  <div class="wrap">
+    <div class="brand">
+      <div class="logo"><img src="data:image/jpeg;base64,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" alt="HealthWatch logo, Together. Safe. Everywhere." width="420" height="264"></div>
+      <div>
+        <h1>ITIC Global 2026 · Meeting Planner</h1>
+        <p>HealthWatch Assistance S.A. · Thessaloniki, Greece · Istanbul, Mon 2 – Thu 5 Nov 2026</p><p class="msub">Istanbul · 2–5 Nov 2026</p>
+      </div>
+    </div>
+    <div><div class="kpis" id="kpis"></div><div class="mrow"><div class="sync" id="sync"><i></i><span>Connecting…</span></div><span class="me"><label for="meSel">I am</label><select id="meSel"><option value="">Choose…</option><option value="D">Dr. Dimitri</option><option value="S">Dr. Sami</option><option value="C">Clara</option><option value="X">Christina</option></select></span></div></div>
+  </div>
+</header>
+
+<nav class="tabs" aria-label="Views">
+  <div class="wrap" role="tablist">
+    <button class="tab" role="tab" data-v="schedule" aria-selected="true"><svg class="ti" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg><span class="lf">Schedule</span><span class="ls">Plan</span></button>
+    <button class="tab" role="tab" data-v="now" aria-selected="false"><svg class="ti" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg><span class="lf">Now &amp; next</span><span class="ls">Now</span></button>
+    <button class="tab" role="tab" data-v="clients" aria-selected="false"><svg class="ti" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M8 10h8M8 14h5"/></svg><span class="lf">Client briefs</span><span class="ls">Briefs</span> <span class="n" id="nClients"></span></button>
+    <button class="tab" role="tab" data-v="team" aria-selected="false"><svg class="ti" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="9" r="3"/><circle cx="17" cy="10" r="2.5"/><path d="M3 19c1-3 3.5-4.5 6-4.5s5 1.5 6 4.5M15 15c2 0 4 1 5 3.5"/></svg><span class="lf">Team agendas</span><span class="ls">Team</span></button>
+    <button class="tab" role="tab" data-v="pipeline" aria-selected="false"><svg class="ti" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg><span class="lf">Pipeline</span><span class="ls">Deals</span> <span class="n" id="nPipe"></span></button>
+    <button class="tab" role="tab" data-v="flags" aria-selected="false"><svg class="ti" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 21V4M6 4h11l-2 4 2 4H6"/></svg><span class="lf">Flags</span><span class="ls">Flags</span> <span class="n" id="nFlags"></span></button>
+  </div>
+</nav>
+
+<main>
+<div class="wrap">
+
+  <section class="view" id="v-schedule">
+    <div class="row sp">
+      <div>
+        <h2>Who is where</h2>
+        <p class="sub">By time: meetings in the same slot sit side by side, each with its own people. By person: one column per team member. ★ marks who leads; dashed outline = waiting confirmation. Click a meeting for its brief, notes and attendees, or "+ Parallel meeting" to book another at the same time.</p>
+      </div>
+      <div class="row ctrl"><div class="seg" id="modeSeg" role="group" aria-label="Layout"><button data-m="time" aria-pressed="true">By time</button><button data-m="person" aria-pressed="false">By person</button></div><div class="seg" id="daySeg" role="group" aria-label="Day"></div><button type="button" class="btn pri" id="addWalk">+ Add walk-up</button></div>
+    </div>
+    <div class="row sp" style="margin-top:10px">
+      <div class="legend">
+        <span><i style="background:var(--pD)"></i>Dr. Dimitri · CEO</span>
+        <span><i style="background:var(--pS)"></i>Dr. Sami · Medical</span>
+        <span><i style="background:var(--pC)"></i>Clara · Network</span>
+        <span><i style="background:var(--pX)"></i>Christina · Finance</span>
+        <span><i style="background:var(--surface-2);border:1px solid var(--line)"></i>Hatched = free</span>
+      </div>
+    </div>
+    <div id="slots" class="slots"></div>
+    <div class="gridwrap" id="gridwrap" hidden><div class="grid" id="grid"></div></div>
+    <p class="daynote" id="daynote"></p>
+  </section>
+
+  <section class="view" id="v-now" hidden>
+    <div class="row sp">
+      <div><h2>Now &amp; next</h2><p class="sub">Where each person is and where they go next. Uses Istanbul time during the conference.</p></div>
+      <div class="row"><label for="nowDay" class="meta">Day</label><select id="nowDay" class="inp"></select><label for="nowTime" class="meta">Time</label><input id="nowTime" class="inp" type="time" step="300"><button type="button" class="btn" id="nowReset">Back to live</button></div>
+    </div>
+    <div style="margin-top:8px" id="nowLive"></div>
+    <div class="team" id="nowCards"></div>
+  </section>
+
+  <section class="view" id="v-clients" hidden>
+    <h2>Client briefs</h2>
+    <p class="sub">What each company does, what HWA proposes, and the goal of the meeting.</p>
+    <div class="filters">
+      <div class="q"><label for="fq">Search</label><input id="fq" type="search" placeholder="Search company, contact, country…"></div>
+      <div><label for="fday">Day</label><select id="fday"><option value="">All days</option><option value="Mon">Mon 2 Nov</option><option value="Tue">Tue 3 Nov</option><option value="Wed">Wed 4 Nov</option><option value="Flex">Booth / any time</option></select></div>
+      <div><label for="ftype">Type</label><select id="ftype"><option value="">All types</option></select></div>
+      <div><label for="fwho">Attendee</label><select id="fwho"><option value="">Whole team</option><option value="D">Dr. Dimitri</option><option value="S">Dr. Sami</option><option value="C">Clara</option><option value="X">Christina</option></select></div>
+      <div><label for="fst">Status</label><select id="fst"><option value="">Any status</option><option value="confirmed">Confirmed</option><option value="awaiting">Awaiting</option><option value="flexible">Booth / flexible</option><option value="done">Done</option><option value="cancelled">Cancelled</option></select></div>
+      <div><label for="ffit">Fit</label><select id="ffit"><option value="0">Any fit</option><option value="4">Fit 4–5</option><option value="3">Fit 3+</option></select></div>
+    </div>
+    <div class="cards" id="cards"></div>
+  </section>
+
+  <section class="view" id="v-team" hidden>
+    <h2>Team agendas</h2>
+    <p class="sub">Each person's day in order, with free windows for walk-ups and booth visits.</p>
+    <div class="team" id="team"></div>
+  </section>
+
+  <section class="view" id="v-pipeline" hidden>
+    <div class="row sp">
+      <div><h2>Post-conference pipeline</h2><p class="sub">Ranked by estimated value × likelihood. Filled from the notes saved in each meeting.</p></div>
+      <div class="row"><button type="button" class="btn" id="copyPipe">Copy as table</button><span class="meta" id="copyMsg" role="status"></span></div>
+    </div>
+    <textarea id="copyFallback" class="inp" rows="4" hidden readonly style="width:100%;margin-top:8px"></textarea>
+    <div class="pipesum" id="pipeSum"></div>
+    <div class="tablewrap"><table class="pipe"><thead><tr><th>#</th><th>Company</th><th>Status</th><th>Est. value</th><th>Likelihood</th><th>Weighted</th><th>Next step</th><th>Follow-up owner</th><th>Follow-up</th></tr></thead><tbody id="pipeBody"></tbody></table></div>
+  </section>
+
+  <section class="view" id="v-flags" hidden>
+    <h2>Flags to resolve before Monday</h2>
+    <p class="sub">Clashes, duplicates, unconfirmed meetings and gaps against the earlier master schedule.</p>
+    <div class="flags" id="flags"></div>
+  </section>
+
+</div>
+</main>
+<footer><div class="wrap">Source: ITIC_Meeting_Schedule_2026.xlsx (29 Oct 2026) merged with the HWA ITIC master schedule. HealthWatch Assistance S.A. is approved by Lloyd's as a Delegated Claims Administrator (DCA). Company profiles marked "Verify" could not be confirmed from public sources.</div></footer>
+
+<div class="pingate" id="pinGate" hidden><form class="pinbox" id="pinForm"><img src="data:image/jpeg;base64,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" alt="HealthWatch"><b>ITIC Global 2026 · Team planner</b><label for="pinIn"><p>Enter the team PIN</p></label><input id="pinIn" type="password" inputmode="numeric" autocomplete="off" maxlength="12" required><button type="submit">Open planner</button><p id="pinMsg" role="status"></p></form></div>
+<div class="scrim" id="scrim" hidden></div>
+<aside class="drawer" id="drawer" hidden role="dialog" aria-modal="true" aria-labelledby="dTitle"></aside>
+
+<script>
+const PEOPLE={
+  D:{name:"Dr. Dimitri",role:"CEO · strategy & partnerships"},
+  S:{name:"Dr. Sami Alzubaidi",role:"Medical Officer & Head of Medical Desk"},
+  C:{name:"Clara",role:"Network & Client Manager"},
+  X:{name:"Christina",role:"Accounting & Client Manager"}
+};
+const DAYS={Mon:"Mon 2 Nov",Tue:"Tue 3 Nov",Wed:"Wed 4 Nov",Thu:"Thu 5 Nov",Flex:"Booth / any time"};
+
+// m: day,start,end,loc,co,contact,type,country,status,fit(0=unknown),team,lead,does,needs,propose,talk,obj,goal,flag,verify,existing,suggest
+const M=[
+// ---------- MONDAY 2 NOV ----------
+{id:"m1",day:"Mon",start:"10:30",end:"10:45",loc:"Reg Desk",co:"247 Aviation",contact:"Gareth Evans",type:"Air ambulance",country:"UK (Belfast)",status:"confirmed",fit:3,team:["S","C"],lead:"S",
+ does:"Fixed-wing air ambulance operator, part of SERE Aviation Group. Flies Learjet 45s, EURAMI-listed, and operates fixed-wing flights for England's NHS air ambulance service.",
+ needs:["Reliable bedside and airside ground support at Greek and Cypriot airports","Fit-to-fly reports in English before wheels-up","Hospital discharge and ground ambulance timed to the aircraft"],
+ propose:["HWA as ground medical partner in Greece, Cyprus and the Balkans: hospital liaison, medical reports, ground ambulance to the aircraft, escort doctor or nurse","Two-way flow: HWA refers air ambulance missions from its own clients"],
+ talk:["We are the doctor on the ground who has the patient ready when the jet lands","Same-day English medical reports and fit-to-fly assessments","Approved by Lloyd's as a DCA, so our paperwork stands up to insurer audit"],
+ obj:[["We already use a local handler.","Offer one trial mission with an agreed response time and compare."],["Our volume to Greece is small.","No minimums. Per-mission pricing only."]],
+ goal:"Added to their Greece/Cyprus ground partner list; send rate card for ground support.",why:"Sami owns air ambulance; Clara covers airport ambulance and hospital network."},
+{id:"m2",day:"Mon",start:"11:15",end:"11:30",loc:"Reg Desk",co:"ISAS (Inter Secours Assistance)",contact:"Zaina El Mouadden",type:"Assistance company",country:"Morocco",status:"confirmed",fit:3,team:["S","C"],lead:"S",verify:true,
+ does:"Moroccan assistance company (Inter Secours Assistance). Handles medical and travel assistance in Morocco.",
+ needs:["A partner for their insured who fall ill in Greece, Cyprus or the Balkans","Possibly a partner for cases in Egypt"],
+ propose:["Reciprocal agreement: HWA handles their cases in Greece, Cyprus, the Balkans and Egypt; ISAS handles HWA's cases in Morocco","Exchange rate sheets and 24-hour contact lists"],
+ talk:["Doctor-to-doctor in French or Arabic","HWA runs its own provider network in Egypt"],
+ obj:[["Our volume to your region is low.","Reciprocity costs nothing until a case happens; per-case fees only."]],
+ goal:"Reciprocal service agreement and exchanged rate sheets.",why:"Sami: French/Arabic medical lead. Clara: network side of a reciprocal deal."},
+{id:"m3",day:"Mon",start:"11:30",end:"12:00",loc:"Reg Desk",co:"DRK Assistance",contact:"Nadine Stollenwerk",type:"Assistance company",country:"Germany",status:"confirmed",fit:5,team:["D","S","C"],lead:"D",
+ does:"German Red Cross–linked assistance service providing medical assistance and repatriation for German travellers and insurance partners.",
+ needs:["Fast case handling on Greek islands in peak season","Control of private tourist-clinic bills","GOPs and daily medical updates","Fit-to-fly and repatriation readiness"],
+ propose:["Full case management in Greece and Cyprus: GOPs, bill review, daily English medical updates, fit-to-fly","Peak-season overflow capacity if they already have a Greek partner","Price comparison on 5 of their recent Greek cases"],
+ talk:["Island tourist clinics are where costs leak; our bill review stops that","German travellers are one of Greece's largest tourist groups","Approved by Lloyd's as a DCA"],
+ obj:[["We have a Greek partner already.","Run us as secondary/overflow for summer 2027 and compare on cost and speed."],["Language?","Medical reports in English; German correspondence can be arranged."]],
+ goal:"Pilot for summer 2027 season, or rate sheet within 7 days.",why:"High-value payer: CEO leads, Sami for medical case flow, Clara for island network."},
+{id:"m4",day:"Mon",start:"12:00",end:"12:30",loc:"Reg Desk",co:"911 Travel Assistance",contact:"Walid Ben Kilani",type:"Local assistance provider",country:"Tunisia",status:"confirmed",fit:3,team:["S","C"],lead:"S",
+ does:"Tunisia-based provider coordinating medical cases, clinics and ambulance transport in Tunisia, Libya and Algeria for international insurers and assistance companies.",
+ needs:["Inbound cases from international insurers and assistance firms","A partner for Tunisian travellers in Greece"],
+ propose:["HWA uses them as its North Africa provider (Tunisia, Libya, Algeria)","HWA handles their outbound cases in Greece and Cyprus"],
+ talk:["Arabic and French doctor-to-doctor","We need their clinic list, rate card and sample reports to meet HWA cost-containment standards"],
+ obj:[["Can you send us volume?","Yes for Maghreb cases, subject to SLA and report quality."]],
+ goal:"Provider agreement plus their rate card and clinic list.",why:"Sami: Arabic/French and medical quality check. Clara: provider onboarding."},
+{id:"m5",day:"Mon",start:"12:30",end:"13:00",loc:"Reg Desk",co:"HCA Healthcare UK",contact:"Mrs Miele Hurlock",type:"Hospital group",country:"UK (London)",status:"confirmed",fit:2,team:["C"],lead:"C",
+ does:"Private hospital group in London with an international patient service.",
+ needs:["Referrals of international patients","Direct billing with assistance companies"],
+ propose:["Add to HWA network for UK inpatient cases of HWA's clients","Direct billing with GOP, agreed discount and a named case manager"],
+ talk:["We issue GOPs and pay to agreed terms","We can route repatriated or elective cases"],
+ obj:[["We want volume commitments.","No commitments; per-case direct billing."]],
+ goal:"Network agreement and discount schedule.",why:"Hospital network deal: Clara alone."},
+{id:"m6",day:"Mon",start:"13:45",end:"14:00",loc:"Reg Desk",co:"MDCL Consulting",contact:"Manuela (Pujals) Lord",type:"Consultant / introducer",country:"USA",status:"confirmed",fit:2,team:["D","C"],lead:"D",
+ does:"US business-development consultancy (25+ years) working with international private medical insurance, US centres of excellence, TPAs and travel insurers.",
+ needs:["Partners to introduce to her US and Latin American payer contacts","Possibly referrals to the US hospitals she represents"],
+ propose:["HWA as the Greece, Cyprus, Balkans and Egypt partner she can introduce to her payers","Finder's fee only on signed business"],
+ talk:["One-page capability sheet","Approved by Lloyd's as a DCA"],
+ obj:[["Retainer?","No retainer; success fee on signed contracts."]],
+ goal:"Introductions to 2–3 named payers.",why:"Door-opener to partnerships: CEO. Clara covers network questions."},
+{id:"f4",day:"Mon",start:"13:00",end:"13:30",loc:"Their location (between meetings)",co:"Viking Assistance Group",contact:"Gry Monica Hellevik",type:"Assistance company",country:"Norway",status:"flexible",fit:4,team:["D","C"],lead:"D",suggest:true,
+ does:"Nordic assistance company serving Scandinavian travel insurers.",
+ needs:["Strong partner for Nordic travellers in Greece, Crete and Cyprus","Cost control on private tourist clinics"],
+ propose:["Greece/Cyprus case management with GOPs and bill review","Summer peak capacity"],
+ talk:["Crete, Rhodes and Cyprus are core Nordic summer markets","Daily English medical updates"],
+ obj:[["We have a partner.","Offer overflow and a cost comparison on recent cases."]],
+ goal:"Rate sheet and follow-up call with their network manager.",why:"Payer: CEO plus Clara for network."},
+{id:"f2",day:"Mon",start:"13:00",end:"13:30",loc:"Booth 29",co:"Elroy AirMed",contact:"Gina Heffernan",type:"Air ambulance",country:"UK (Bristol)",status:"flexible",fit:4,team:["S"],lead:"S",suggest:true,
+ does:"Medical repatriation company founded 2022: air ambulance, commercial medical escorts, ICU and bed-to-bed transfers for insurers and assistance teams.",
+ needs:["Ground partner in Greece/Cyprus for bed-to-bed transfers","Local doctors and nurses for escorts"],
+ propose:["HWA as ground and medical partner in Greece, Cyprus and the Balkans","Escort doctor/nurse supply from Greece"],
+ talk:["We prepare the patient and paperwork before the crew arrives","Two-way referrals"],
+ obj:[["We fly in our own crew.","We cover the ground: hospital, ambulance, reports."]],
+ goal:"Ground partner listing and rate card.",why:"Air ambulance: Sami."},
+{id:"m7",day:"Mon",start:"14:00",end:"14:30",loc:"Reg Desk",co:"TMASI Global",contact:"Irina Tretyakova",type:"Assistance company",country:"Spain (Barcelona team)",status:"confirmed",fit:4,team:["D","C"],lead:"D",
+ does:"Travel and medical assistance company: medical assistance, repatriation, telemedicine and roadside assistance. Irina leads strategic partnerships.",
+ needs:["Local medical partners in Greece and nearby markets"],
+ propose:["Greece, Cyprus and Balkans case management, GOPs, bill review, ambulance and escort coordination"],
+ talk:["Network depth on the islands","Transparent per-case fee; savings exceed the fee"],
+ obj:[["Price?","Per-case fee, no minimums; show savings on bill review."]],
+ goal:"Rate sheet and 2–3 test cases.",why:"Payer: CEO; Clara on network depth."},
+{id:"m8",day:"Mon",start:"14:30",end:"15:00",loc:"Reg Desk",co:"Universal Assistance",contact:"Jose Tonelli",type:"Travel assistance",country:"Argentina",status:"confirmed",fit:4,team:["D","S","X"],lead:"D",
+ does:"One of Latin America's largest travel assistance brands, covering travellers from Argentina and the region worldwide.",
+ needs:["Partner for Latin American travellers and cruise passengers in Greece and the East Mediterranean","Cost control and clear invoicing"],
+ propose:["Greece, Cyprus, Balkans and Egypt case handling with bill review","Clear invoicing, payment terms and currency options"],
+ talk:["Summer and cruise season peaks in Greece","Lloyd's DCA claims discipline"],
+ obj:[["Our volume to Greece is small.","No minimum; per-case pricing."],["Payment terms?","Christina presents standard terms."]],
+ goal:"Rate sheet and service agreement draft.",why:"CEO leads; Sami medical; Christina on pricing and terms."},
+{id:"m9",day:"Mon",start:"14:45",end:"15:00",loc:"Booth 17",co:"Medical Park (Türkiye)",contact:"V. Bayfidan, B. Tasar, M. Indirkas, S. Misolam, M. Hotaman, E. Sen",type:"Hospital group",country:"Türkiye",status:"confirmed",fit:3,team:["C"],lead:"C",
+ does:"Large private hospital group in Türkiye with an international patients office.",
+ needs:["Referrals from international payers"],
+ propose:["HWA network provider for Istanbul, Antalya and Aegean coast cases","Direct billing, discount, English reports; cross-border transfers to nearby Greek islands"],
+ talk:["We issue GOPs and pay to terms"],
+ obj:[["Volume commitment?","Per case."]],
+ goal:"Direct-billing agreement.",why:"Network deal: Clara."},
+{id:"m10",day:"Mon",start:"15:00",end:"15:30",loc:"Booth 37",co:"Unicair",contact:"Andrea Ressler",type:"Air ambulance",country:"Germany",status:"confirmed",fit:5,team:["S","D"],lead:"S",existing:true,
+ does:"EURAMI-accredited air ambulance operator. Existing HWA client.",
+ needs:["Relationship review","Consistent ground support quality","MENA and Egypt coverage"],
+ propose:["Review 2026 cases and any service issues","Agreed ground-handling response times","Preferred-partner status for Greece, Cyprus and Egypt"],
+ talk:["Thank them for 2026 business","Bring 2026 case stats","Egypt network"],
+ obj:[["Any service issues?","Listen, name an owner, fix within a deadline."]],
+ goal:"Agree 2027 volumes and preferred-partner status.",why:"Existing air ambulance client: Sami leads, CEO for relationship."},
+{id:"m11",day:"Mon",start:"15:00",end:"15:30",loc:"Tabletop M",co:"Hearts First Ambulance",contact:"Andy King",type:"Ground ambulance",country:"UK",status:"confirmed",fit:2,team:["C"],lead:"C",
+ does:"UK private ambulance service (CQC-registered) for patient transport and event cover; listed on EURAMI.",
+ needs:["Work from international assistance companies"],
+ propose:["HWA books them for UK ground legs of repatriations","They refer Greek-side work to HWA"],
+ talk:["Two-way referrals"],
+ obj:[["Volume?","Per job."]],
+ goal:"Rate card for UK airport-to-hospital transfers.",why:"Low value, clashes with Unicair: Clara alone."},
+{id:"m12",day:"Mon",start:"15:30",end:"15:45",loc:"Reg Desk",co:"Nordic AirAmbulance + Scandic / MedevacX",contact:"Patrik Karlsson & Cedric Henriot",type:"Air ambulance",country:"Norway / Cyprus",status:"confirmed",fit:4,team:["S","C"],lead:"S",
+ does:"Nordic AirAmbulance (Patrik Karlsson). Cedric Henriot founded Scandic Services in Cyprus, parent of MedevacX, a medical case-management and air ambulance platform launched in Europe in April 2026.",
+ needs:["Ground medical partner in Greece and Cyprus","Clinical reports and bedside assessments"],
+ propose:["HWA as ground medical partner for both","Clarify whether MedevacX is a partner or a competitor in case management"],
+ talk:["Thessaloniki medical desk; Cyprus coverage"],
+ obj:[["MedevacX does case management itself.","Position HWA as the doctor on the ground, not the case manager."]],
+ goal:"Ground partner agreement; decide if the Wed 11:30 Scandic meeting is still needed.",why:"Air ambulance: Sami; Clara for ground ambulance.",flag:"Cedric Henriot is booked again Wed 11:30 (Scandic Services). Merge into this slot if possible."},
+{id:"f1",day:"Mon",start:"15:45",end:"16:15",loc:"IAG booth",co:"International Assistance Group (IAG)",contact:"David Clero",type:"Assistance network",country:"Global alliance",status:"flexible",fit:3,team:["D"],lead:"D",suggest:true,
+ does:"Global alliance of independent assistance companies that refer cases to each other. Athens Assistance is its Greek member.",
+ needs:["Members in each country"],
+ propose:["Membership or secondary partner role for Cyprus, the Balkans, Egypt and Northern Greece","Overflow for the Greek member in peak season"],
+ talk:["Approved by Lloyd's as a DCA","Own Egypt network"],
+ obj:[["We already have a Greek member.","Offer Cyprus, Balkans, Egypt and overflow."]],
+ goal:"Understand membership terms; get a contact for the membership committee.",why:"Strategic: CEO."},
+{id:"m13",day:"Mon",start:"16:15",end:"16:30",loc:"Reg Desk",co:"HLA Group",contact:"Javier Casquero",type:"Hospital group",country:"Spain",status:"confirmed",fit:2,team:["C"],lead:"C",
+ does:"Spanish private hospital group (Grupo HLA). Javier is Global Insurance Network Manager.",
+ needs:["Referrals from international insurers"],
+ propose:["Spain network provider for HWA client cases; direct billing"],
+ talk:["GOP process, payment terms"],
+ obj:[],goal:"Direct-billing agreement.",why:"Network deal: Clara."},
+{id:"m14",day:"Mon",start:"16:30",end:"17:00",loc:"Reg Desk",co:"Medexpress",contact:"Eugene Stefanopoulos",type:"To be qualified",country:"Unknown",status:"confirmed",fit:0,team:["D","C"],lead:"D",verify:true,
+ does:"No reliable public profile found. Check before Monday whether this is a Greek medical transport company (possible partner or competitor).",
+ needs:["Unknown"],propose:["Qualify first: who they serve, where they operate, whether they compete with HWA"],
+ talk:["Ask what they want from HWA"],obj:[],goal:"Qualify: partner, client or competitor.",why:"Unknown, possibly Greek market: CEO plus Clara."},
+
+// ---------- TUESDAY 3 NOV ----------
+{id:"t1",day:"Tue",start:"09:00",end:"09:30",loc:"Reg Desk",co:"Samitivej",contact:"Ms Naruechol Chotruangnapha",type:"Hospital group",country:"Thailand",status:"confirmed",fit:1,team:["C"],lead:"C",
+ does:"Private hospital group in Bangkok with a large international patient service.",
+ needs:["Referrals from international payers"],propose:["Thailand provider for HWA clients' travellers; direct billing contact"],
+ talk:["GOP and payment terms"],obj:[],goal:"Direct-billing contact. Shorten to 15 min if possible.",why:"Low value: Clara alone."},
+{id:"t2",day:"Tue",start:"10:00",end:"10:30",loc:"Reg Desk",co:"SaludOnNet",contact:"Francisco Pizarro Posse",type:"Digital health platform",country:"Spain",status:"confirmed",fit:2,team:["C","X"],lead:"C",verify:true,
+ does:"Spanish online marketplace for private medical services (book and pay for consultations, tests and procedures).",
+ needs:["Provider partners and B2B channels"],
+ propose:["Explore Greek provider partnership or referral of their international users to HWA's network"],
+ talk:["HWA network across Greece and Cyprus"],obj:[],goal:"Explore; follow-up call if there is a fit.",why:"Exploratory: Clara and Christina, CEO kept free."},
+{id:"t3",day:"Tue",start:"10:30",end:"11:00",loc:"Reg Desk",co:"CEGA",contact:"Evie Perry",type:"Assistance & medical transport",country:"UK",status:"confirmed",fit:5,team:["D","S"],lead:"D",
+ does:"UK assistance and claims group: medical assistance, air ambulance and medical escort, travel claims. Sami already works with CEGA on medical escorts.",
+ needs:["Strong Greek and Cypriot ground partner for assistance and claims","Escort doctors from Greece"],
+ propose:["Preferred partner for Greece and Cyprus case management and cost containment","Escort doctors/nurses from Greece"],
+ talk:["Existing escort relationship with Sami","Lloyd's DCA claims discipline"],
+ obj:[["We already have a Greek partner.","Offer trial on 10 cases with comparison."]],
+ goal:"Preferred-partner pilot for Greece/Cyprus.",why:"Fit 5: CEO leads; Sami as escort owner."},
+{id:"t4",day:"Tue",start:"10:30",end:"10:45",loc:"Booth 13",co:"Hospiten",contact:"Julian Campo",type:"Hospital group",country:"Spain (Canaries) / Latin America",status:"confirmed",fit:2,team:["C"],lead:"C",
+ does:"Private hospital group in the Canary Islands and mainland Spain, plus Mexico, Dominican Republic and Jamaica. Julian heads the International Care Program.",
+ needs:["International payer referrals"],propose:["Network provider for HWA cases in Canaries and Caribbean resorts"],
+ talk:["Direct billing, GOPs"],obj:[],goal:"Direct-billing agreement.",why:"Network deal: Clara."},
+{id:"t5",day:"Tue",start:"10:45",end:"11:00",loc:"Location TBC",co:"HealthMetrics",contact:"CJ Liew",type:"TPA",country:"Malaysia",status:"confirmed",fit:3,team:["C","X"],lead:"C",
+ does:"Malaysian digital TPA for corporate health benefits. Expanded to Indonesia and invested in Across Asia Assist.",
+ needs:["Medical assistance for members travelling to Europe"],
+ propose:["Greece/Cyprus case handling and cost containment for their members","Link to Across Asia Assist (requested earlier)"],
+ talk:["TPA to TPA: claims and cost containment"],obj:[],goal:"Follow-up call and rate sheet.",why:"Clara plus Christina (TPA billing questions).",flag:"Location missing."},
+{id:"t6",day:"Tue",start:"11:00",end:"11:30",loc:"Meeting room Matterhorn",co:"GMMI",contact:"Yafit Ursinay & Monica Rummelhoff",type:"Cost containment",country:"USA (Florida)",status:"confirmed",fit:4,team:["D","S"],lead:"D",
+ does:"Medical cost containment and risk management company with a global provider network; bill review and claims services for insurers.",
+ needs:["Local negotiation on Greek island clinics","On-the-ground medical review"],
+ propose:["Greece, Cyprus, Balkans and Egypt network access and local bill negotiation","Medical review by HWA doctors"],
+ talk:["Local Greek-language negotiation beats remote repricing","Lloyd's DCA"],
+ obj:[["We have our own network.","Local negotiation and medical review where your network is thin."]],
+ goal:"Network partnership agreement.",why:"Strategic: CEO; Sami on medical review."},
+{id:"t7",day:"Tue",start:"11:30",end:"12:00",loc:"Reg Desk",co:"Collinson",contact:"Claudia Carfí",type:"Travel insurance & assistance",country:"UK",status:"confirmed",fit:5,team:["D","S","C"],lead:"D",
+ does:"Global group in travel insurance, assistance and medical services.",
+ needs:["Greece/Cyprus partner with fast case handling and cost control"],
+ propose:["Full case management, GOPs, bill review and repatriation coordination for Greece, Cyprus and Balkans"],
+ talk:["UK is the largest tourist market to Greece","Lloyd's DCA"],
+ obj:[["We have a partner.","Pilot on peak-season overflow and compare."]],
+ goal:"Pilot or rate sheet.",why:"Fit 5: full team except finance."},
+{id:"t8",day:"Tue",start:"12:30",end:"13:00",loc:"TBC",co:"DAN Europe (DAN Assistance)",contact:"Marta Marrocco",type:"Diving medical assistance",country:"Europe (Malta/Italy)",status:"confirmed",fit:4,team:["D","S"],lead:"D",
+ does:"Divers Alert Network Europe: dive accident insurance and diving emergency assistance.",
+ needs:["Fast coordination of dive accidents in Greece and Cyprus","Access to hyperbaric centres and ambulance"],
+ propose:["Dive accident case handling in Greece and Cyprus: hyperbaric centre coordination, ambulance, hospital bills"],
+ talk:["Greece and Cyprus are major dive destinations","Doctor-led coordination"],
+ obj:[["We coordinate centrally.","We are the local doctor and payer on the spot."]],
+ goal:"Greece/Cyprus partner agreement.",why:"CEO plus Sami (medical)."},
+{id:"t9",day:"Tue",start:"12:45",end:"13:00",loc:"Meeting Point 2",co:"CIWEC Hospital",contact:"Utsav Khatri / Mrs Smriti Bajracharya",type:"Hospital",country:"Nepal",status:"confirmed",fit:1,team:["C"],lead:"C",
+ does:"Kathmandu hospital focused on travel medicine and trekkers.",
+ needs:["Payer referrals"],propose:["Provider contact for Nepal cases"],talk:[],obj:[],goal:"Contact only.",why:"Low value: Clara."},
+{id:"f3",day:"Tue",start:"13:00",end:"13:30",loc:"Their location",co:"Medexa International",contact:"Andrew Matthews",type:"Cost containment / assistance",country:"UK",status:"flexible",fit:3,team:["S","X"],lead:"S",suggest:true,verify:true,
+ does:"Andrew Matthews works in global medical cost containment (previously Global Network Manager at Charles Taylor Assistance). Company profile not confirmed.",
+ needs:["Local cost containment and provider network"],
+ propose:["Bill review and network access in Greece, Cyprus, Balkans, Egypt"],
+ talk:["Doctor-led bill review"],obj:[],goal:"Qualify and exchange rate sheets.",why:"Sami medical review; Christina pricing."},
+{id:"t10",day:"Tue",start:"13:30",end:"13:45",loc:"Reg Desk",co:"Clinica Hospital San Fernando",contact:"Mrs Maylin Poveda",type:"Hospital",country:"Panama",status:"confirmed",fit:1,team:["X"],lead:"X",
+ does:"Private hospital in Panama City.",needs:["Payer referrals"],propose:["Provider contact for Panama cases"],talk:[],obj:[],goal:"Contact only; drop if a better slot use appears.",why:"Low value: Christina, frees Clara."},
+{id:"t11",day:"Tue",start:"14:00",end:"14:30",loc:"Reg Desk",co:"Trails of Indochina",contact:"John Nguyen & Kiet Pham",type:"Tour operator",country:"Vietnam",status:"confirmed",fit:1,team:["X"],lead:"X",
+ does:"Vietnam-based tour operator and destination company for Southeast Asia.",needs:["Assistance cover for their travellers"],
+ propose:["Medical assistance for their groups when they travel to Greece/Cyprus"],talk:[],obj:[],goal:"Contact only.",why:"Low value: Christina, CEO freed."},
+{id:"t12",day:"Tue",start:"14:30",end:"14:45",loc:"TBC",co:"Medicana Health Group",contact:"Ms Sebnem Yayici Mercan",type:"Hospital group",country:"Türkiye",status:"confirmed",fit:3,team:["C"],lead:"C",
+ does:"Private hospital group in Türkiye with international patient services.",needs:["Payer referrals"],
+ propose:["Network provider for HWA cases in Türkiye; direct billing"],talk:[],obj:[],goal:"Direct-billing agreement.",why:"Network: Clara."},
+{id:"t13",day:"Tue",start:"14:45",end:"15:00",loc:"Booth 35",co:"ATMS (Asian Travel and Medical Services)",contact:"Md Shahabuddin",type:"Assistance company",country:"India (Kolkata)",status:"confirmed",fit:3,team:["S","X"],lead:"S",
+ does:"Assistance provider across Asia: case management, GOPs, cost containment, evacuation, repatriation and hospital network for insurers, TPAs and corporates.",
+ needs:["Partner for Indian and Asian travellers in Greece and Cyprus"],
+ propose:["Reciprocal: HWA covers Greece/Cyprus/Balkans/Egypt, ATMS covers South Asia for HWA"],
+ talk:["Doctor-to-doctor case flow"],obj:[],goal:"Reciprocal agreement and rate exchange.",why:"Sami medical; Christina on rates.",flag:"Sheet says 'already scheduled'. Sami must leave at 15:00 for Mutuaide."},
+{id:"t14",day:"Tue",start:"15:00",end:"15:30",loc:"TBC",co:"Mutuaide Assistance",contact:"Frederic Senente",type:"Assistance company",country:"France",status:"awaiting",fit:5,team:["D","S"],lead:"D",
+ does:"French assistance company in the Groupama group.",
+ needs:["Greece/Cyprus partner for French travellers"],
+ propose:["Full case management, bill review, repatriation coordination"],
+ talk:["Sami speaks French: doctor-to-doctor","Lloyd's DCA"],
+ obj:[["We have a partner.","Overflow and cost comparison."]],
+ goal:"Rate sheet and pilot.",why:"Fit 5: CEO plus Sami (French)."},
+{id:"t15",day:"Tue",start:"15:00",end:"15:30",loc:"TBC",co:"Meditrans BV",contact:"Pieter Gerkens",type:"Medical transport",country:"Netherlands",status:"awaiting",fit:3,team:["C","X"],lead:"C",
+ does:"Dutch air and ground medical transport company.",needs:["Ground partner in Greece"],
+ propose:["Ground ambulance and hospital liaison in Greece/Cyprus"],talk:[],obj:[],goal:"Ground partner listing.",why:"Clashes with Mutuaide: Clara and Christina.",flag:"Ask to move to 15:30 so Sami (air ambulance) can lead."},
+{id:"t16",day:"Tue",start:"16:00",end:"16:30",loc:"Reg Desk",co:"IMG (International Medical Group)",contact:"Tessa van der Laan",type:"IPMI & travel insurer",country:"USA / Europe",status:"confirmed",fit:5,team:["D","S","X"],lead:"D",
+ does:"International health and travel insurance group serving expatriates and travellers.",
+ needs:["Greece/Cyprus partner for claims and assistance","Cost containment"],
+ propose:["Case management, GOPs, bill review and claims handling under Lloyd's DCA approval"],
+ talk:["TPA claims handling","Network depth"],obj:[["Pricing?","Christina presents per-case and claims fees."]],
+ goal:"Rate sheet and introduction to network director.",why:"Fit 5: CEO, Sami, Christina."},
+{id:"t17",day:"Tue",start:"16:00",end:"16:15",loc:"Reg Desk",co:"Anher Medical Assistance",contact:"Mrs Hongyang Luo",type:"Assistance company",country:"China (Shenzhen)",status:"confirmed",fit:3,team:["C"],lead:"C",
+ does:"Chinese medical assistance company: emergency medical rescue, hospitalisation management, evacuation.",
+ needs:["Partner for Chinese travellers in Greece and Cyprus"],
+ propose:["Greece/Cyprus case handling; reciprocal China cover"],talk:[],obj:[],goal:"Reciprocal agreement.",why:"Clara."},
+{id:"t18",day:"Tue",start:"16:15",end:"16:30",loc:"Reg Desk",co:"Pak-Assist Healthcare",contact:"Hamad Hussain",type:"Assistance company",country:"Pakistan",status:"confirmed",fit:2,team:["C"],lead:"C",
+ does:"Pakistani healthcare and travel assistance: medical escort, evacuation and repatriation, claims investigation.",
+ needs:["International partners"],propose:["Reciprocal partnership; Pakistan provider for HWA"],talk:[],obj:[],goal:"Contact and rate exchange.",why:"Clara."},
+
+// ---------- WEDNESDAY 4 NOV ----------
+{id:"w1",day:"Wed",start:"09:30",end:"10:00",loc:"Tabletop H",co:"MedPark Hospital",contact:"Florent Schlit",type:"Hospital",country:"Thailand",status:"confirmed",fit:1,team:["X"],lead:"X",
+ does:"Private hospital in Bangkok with international marketing team.",needs:["Payer referrals"],propose:["Provider contact for Thailand cases"],talk:[],obj:[],goal:"Contact only.",why:"Low value: Christina."},
+{id:"w2",day:"Wed",start:"10:00",end:"10:30",loc:"Reg Desk",co:"Tyrol Air Ambulance",contact:"Daniel Draxl",type:"Air ambulance",country:"Austria",status:"confirmed",fit:5,team:["D","S","C"],lead:"S",existing:true,
+ does:"Innsbruck-based air ambulance operator. Existing HWA client.",
+ needs:["Relationship review","Ground support quality","2027 planning"],
+ propose:["Review 2026 cases","Ground-handling response times","Egypt and MENA coverage"],
+ talk:["Bring 2026 case stats","Invite Dirk Goellner (BD Assistance) too"],
+ obj:[["Any service issues?","Listen and assign owner."]],
+ goal:"Agree 2027 volumes; expand to Egypt/MENA.",why:"Existing client: Sami leads, CEO and Clara join."},
+{id:"w3",day:"Wed",start:"10:30",end:"11:00",loc:"TBC",co:"Grupo Rescue",contact:"Geraldo Mena",type:"Medical group",country:"Dominican Republic",status:"confirmed",fit:2,team:["C","X"],lead:"C",verify:true,
+ does:"Likely the urgent care / medical group in Bávaro–Punta Cana, Dominican Republic. Confirm before the meeting.",
+ needs:["Payer referrals"],propose:["Provider contact for Caribbean cases"],talk:[],obj:[],goal:"Qualify.",why:"Clara and Christina; Sami freed."},
+{id:"w4",day:"Wed",start:"11:30",end:"12:00",loc:"Reg Desk",co:"Scandic Services / MedevacX",contact:"Cedric Henriot",type:"Case management / air ambulance",country:"Cyprus",status:"confirmed",fit:3,team:["D","C"],lead:"D",
+ does:"Cyprus-based parent of MedevacX, a medical case-management and air ambulance platform launched in Europe in April 2026.",
+ needs:["Ground partners"],propose:["Ground medical partner in Greece/Cyprus, or strategic cooperation in Cyprus"],
+ talk:["Both in the East Med"],obj:[],goal:"Decide partner vs competitor.",why:"Strategic Cyprus angle: CEO plus Clara.",flag:"Duplicate of Mon 15:30. If merged, CEO and Clara are free."},
+{id:"w5",day:"Wed",start:"11:30",end:"12:00",loc:"Reg Desk",co:"Medresq",contact:"Stuart Phillips",type:"Medical repatriation",country:"UK",status:"confirmed",fit:3,team:["S"],lead:"S",verify:true,
+ does:"Medical repatriation and escort provider; Stuart Phillips is a critical care flight nurse. Company profile not confirmed.",
+ needs:["Ground partners for repatriation"],propose:["Ground and escort partner in Greece/Cyprus"],talk:[],obj:[],goal:"Ground partner listing.",why:"Repatriation: Sami."},
+{id:"w6",day:"Wed",start:"12:00",end:"12:30",loc:"Reg Desk",co:"First Assistance",contact:"Reuben Cutfield",type:"Assistance company",country:"UK",status:"confirmed",fit:4,team:["D","S"],lead:"D",
+ does:"UK travel assistance company, part of the Global Excel group (which has its own office in Corfu).",
+ needs:["Coverage where Global Excel's Corfu office is thin"],
+ propose:["Cyprus, Balkans, Türkiye, Egypt and MENA cover; Greek overflow"],
+ talk:["Do not pitch mainland Greece head-on"],obj:[["We have Corfu.","We cover Cyprus, Balkans and Egypt."]],
+ goal:"Rate sheet for Cyprus/Balkans/Egypt.",why:"CEO plus Sami."},
+{id:"w7",day:"Wed",start:"12:30",end:"13:00",loc:"Reg Desk",co:"Crisis24",contact:"Dominic Rose",type:"Security & crisis response",country:"Global (GardaWorld)",status:"awaiting",fit:4,team:["D","S"],lead:"D",
+ does:"GardaWorld's crisis and risk division: travel security, crisis response and evacuation for corporates.",
+ needs:["Medical partner in East Med and MENA for evacuations"],
+ propose:["Medical case management and evacuation support in Greece, Cyprus, Egypt"],talk:["Arabic-speaking medical lead"],obj:[],goal:"Partner listing.",why:"CEO plus Sami."}
+];
+
+// ---------- helpers ----------
+const tm=s=>{const[h,m]=s.split(":").map(Number);return h*60+m};
+const fmt=n=>String(Math.floor(n/60)).padStart(2,"0")+":"+String(n%60).padStart(2,"0");
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fitHtml=f=>f?`<span class="fit" title="Fit ${f}/5">${[1,2,3,4,5].map(i=>`<i class="${i<=f?"on":""}"></i>`).join("")}</span>`:`<span class="pill tag-verify">Fit ?</span>`;
+const ST={confirmed:"Confirmed",awaiting:"Awaiting",flexible:"Booth / flexible",done:"Done",cancelled:"Cancelled"};
+const stHtml=s=>`<span class="pill st-${s}">${ST[s]||s}</span>`;
+const avHtml=t=>`<span class="avs">${t.map(p=>`<span class="av ${p}" title="${PEOPLE[p].name}">${p==="X"?"Ch":p}</span>`).join("")}</span>`;
+const short=p=>PEOPLE[p].name.replace("Dr. Sami Alzubaidi","Dr. Sami");
+const DORD=["Mon","Tue","Wed","Thu"];
+let sorted=[];
+const live=m=>m.status!=="cancelled";
+M.forEach(m=>{m.team0=[...m.team];m.lead0=m.lead;m.status0=m.status});
+const BASE=[...M];
+
+// ---------- shared state ----------
+const RAW={assignments:{},notes:{},walkups:{}};
+const LSK="itic-planner-state";
+function loadLocal(){try{const o=JSON.parse(localStorage.getItem(LSK)||"{}");for(const c in RAW)RAW[c]=o[c]&&typeof o[c]==="object"?o[c]:{}}catch(e){}}
+function saveLocal(){try{localStorage.setItem(LSK,JSON.stringify(RAW))}catch(e){}}
+const STORE={shared:false,db:null,
+  async save(col,id,data){if(this.db){try{await this.db.doc(col+"/"+id).set(data)}catch(e){return false}}RAW[col][id]=data;if(!this.db)saveLocal();rebuild();return true},
+  async remove(col,id){if(this.db){try{await this.db.doc(col+"/"+id).delete()}catch(e){return false}}delete RAW[col][id];if(!this.db)saveLocal();rebuild();return true}};
+
+const str=(v,n=300)=>typeof v==="string"?v.slice(0,n):"";
+const okTeam=t=>Array.isArray(t)&&t.length&&t.every(p=>typeof p==="string"&&p.length===1&&"DSCX".includes(p));
+function walkToMeeting(id,w){
+  if(!w||!DORD.includes(w.day)||!/^\d\d:\d\d$/.test(w.start||"")||!okTeam(w.team))return null;
+  const dur=[15,30,45,60].includes(+w.dur)?+w.dur:30;
+  const team="DSCX".split("").filter(p=>w.team.includes(p));
+  return {id:"wk-"+id,walk:true,day:w.day,start:w.start,end:fmt(tm(w.start)+dur),dur,loc:str(w.loc,80)||"TBC",co:str(w.co,120)||"Walk-up meeting",contact:str(w.contact,160)||"—",
+    type:str(w.type,60)||"Walk-up",country:str(w.country,60)||"—",status:"confirmed",fit:[1,2,3,4,5].includes(+w.fit)?+w.fit:0,team,lead:team.includes(w.lead)?w.lead:team[0],
+    does:str(w.does,600)||"Added during the conference.",needs:[],propose:[str(w.propose,600)||"To be decided in the meeting."],talk:[],obj:[],goal:str(w.goal,200)||"Qualify and agree a next step.",why:"Walk-up added by the team."}}
+function rebuild(){
+  for(let i=M.length-1;i>=0;i--)if(M[i].walk)M.splice(i,1);
+  Object.entries(RAW.walkups).forEach(([id,w])=>{const m=walkToMeeting(id,w);if(m){m.team0=[...m.team];m.lead0=m.lead;m.status0="confirmed";M.push(m)}});
+  M.forEach(m=>{const a=RAW.assignments[m.id];
+    if(a&&okTeam(a.team)){m.team="DSCX".split("").filter(p=>a.team.includes(p));m.lead=m.team.includes(a.lead)?a.lead:m.team[0]}else{m.team=[...m.team0];m.lead=m.lead0}
+    m.changed=m.team.join()!==m.team0.join()||m.lead!==m.lead0;
+    const n=RAW.notes[m.id];m.note=n&&typeof n==="object"?n:null;m.status=m.note&&ST[m.note.status]?m.note.status:m.status0});
+  sorted=[...M].sort((a,b)=>DORD.indexOf(a.day)-DORD.indexOf(b.day)||tm(a.start)-tm(b.start));
+  renderAll()}
+
+// ---------- clash detection ----------
+let clashes=[];
+function computeClashes(){clashes=[];for(const p of "DSCX"){for(const d of DORD){const l=sorted.filter(m=>live(m)&&m.day===d&&m.team.includes(p));for(let i=0;i<l.length;i++)for(let j=i+1;j<l.length;j++){if(tm(l[i].start)<tm(l[j].end)&&tm(l[j].start)<tm(l[i].end))clashes.push([p,d,l[i],l[j]])}}}}
+const overlapFor=(m,p,day=m.day,s=m.start,e=m.end)=>sorted.filter(o=>o!==m&&live(o)&&o.day===day&&o.team.includes(p)&&tm(o.start)<tm(e)&&tm(s)<tm(o.end));
+
+// ---------- KPIs ----------
+function renderKpis(){
+const act=M.filter(live),firm=act.filter(m=>m.status!=="flexible");
+const k=[["Meetings",firm.length],["Confirmed",M.filter(m=>m.status==="confirmed").length],["Awaiting",M.filter(m=>m.status==="awaiting").length,"red"],["Done",M.filter(m=>m.status==="done").length],["Walk-ups",M.filter(m=>m.walk).length],["Double-booked",clashes.length,clashes.length?"red":""]];
+document.getElementById("kpis").innerHTML=k.map(([l,v,c])=>`<div class="kpi ${c||""}"><b>${v}</b><span>${l}</span></div>`).join("");
+document.getElementById("nClients").textContent=M.length;
+const due=M.filter(m=>m.status==="done"&&!(m.note&&m.note.fuSent)).length;document.getElementById("nPipe").textContent=due?due+" due":"";}
+
+// ---------- tabs (hash routing) ----------
+const views=["schedule","now","clients","team","pipeline","flags"];
+function show(v){if(!views.includes(v))v="schedule";document.querySelectorAll(".tab").forEach(t=>t.setAttribute("aria-selected",t.dataset.v===v));views.forEach(x=>document.getElementById("v-"+x).hidden=x!==v);if(v==="now")drawNow()}
+document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>{location.hash=t.dataset.v;show(t.dataset.v)}));
+window.addEventListener("hashchange",()=>show(location.hash.slice(1)));
+
+// ---------- schedule grid ----------
+let curDay="Mon";
+try{curDay=localStorage.getItem("itic-day")||"Mon"}catch(e){}
+if(!DORD.includes(curDay))curDay="Mon";
+const seg=document.getElementById("daySeg");
+seg.innerHTML=DORD.map(d=>`<button data-d="${d}" aria-pressed="${d===curDay}">${DAYS[d]}</button>`).join("");
+seg.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;curDay=b.dataset.d;try{localStorage.setItem("itic-day",curDay)}catch(e){}seg.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b));drawGrid()});
+const START=tm("09:00"),END=tm("17:30"),STEP=15,ROWH=28;
+let MODE="time";try{MODE=localStorage.getItem("itic-mode")||"time"}catch(e){}
+const modeSeg=document.getElementById("modeSeg");
+function setMode(m){MODE=m==="person"?"person":"time";modeSeg.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.m===MODE));document.getElementById("gridwrap").hidden=MODE!=="person";document.getElementById("slots").hidden=MODE!=="time";try{localStorage.setItem("itic-mode",MODE)}catch(e){}}
+modeSeg.addEventListener("click",e=>{const b=e.target.closest("button");if(b)setMode(b.dataset.m)});
+function drawSlots(){
+  const dayM=sorted.filter(m=>m.day===curDay&&live(m));
+  const starts=[...new Set(dayM.map(m=>m.start))].sort((a,b)=>tm(a)-tm(b));
+  const el=document.getElementById("slots");
+  if(!starts.length){el.innerHTML=`<div class="empty">No meetings on ${DAYS[curDay]}. <button type="button" class="btn pri" data-add="13:00">+ Add a meeting</button></div>`;return}
+  el.innerHTML=starts.map(st=>{
+    const here=dayM.filter(m=>m.start===st);
+    const running=dayM.filter(m=>tm(m.start)<tm(st)&&tm(st)<tm(m.end));
+    const busy=new Set([...here,...running].flatMap(m=>m.team));
+    const free="DSCX".split("").filter(p=>!busy.has(p));
+    return `<div class="tslot"><div class="tlabel"><b>${st}</b>${here.length>1?`<span class="pill par">${here.length} in parallel</span>`:""}</div>
+      <div class="tcards">${here.map(m=>`<button class="mcard ${m.status==="awaiting"?"aw":""}" data-id="${m.id}">
+          <div class="row sp"><b>${m.status==="done"?"✓ ":""}${esc(m.co)}</b>${fitHtml(m.fit)}</div>
+          <span class="meta">${m.start}–${m.end} · ${esc(m.loc)}</span>
+          <div class="row sp"><span class="who">${m.team.map(p=>`<span class="wchip ${m.lead===p?"ld":""}"><span class="av ${p}">${p==="X"?"Ch":p}</span>${short(p)}${m.lead===p?" ★":""}</span>`).join("")}</span>${m.status!=="confirmed"?stHtml(m.status):""}</div>
+        </button>`).join("")}
+        ${running.length?`<div class="cont">Still running: ${running.map(m=>`${esc(m.co)} (${m.team.map(short).join(", ")}, until ${m.end})`).join(" · ")}</div>`:""}
+        <div class="freebox">${free.length?`<span class="meta">Free at ${st}: ${free.map(short).join(", ")}</span><button type="button" class="btn" data-add="${st}" data-free="${free.join("")}">+ Parallel meeting</button>`:`<span class="meta">Whole team busy at ${st}</span>`}</div>
+      </div></div>`}).join("");
+}
+document.getElementById("slots").addEventListener("click",e=>{const c=e.target.closest(".mcard");if(c)return openBrief(c.dataset.id);const a=e.target.closest("[data-add]");if(a)openWalkup({day:curDay,start:a.dataset.add,team:(a.dataset.free||"D").slice(0,1).split("")})});
+function drawGrid(){drawSlots();
+  const g=document.getElementById("grid");const rows=(END-START)/STEP;
+  g.style.gridTemplateRows=`auto repeat(${rows},${ROWH}px)`;
+  const order=["D","S","C","X"];const dayM=sorted.filter(m=>m.day===curDay&&live(m)&&tm(m.start)>=START&&tm(m.end)<=END);
+  let h=`<div class="gh" style="grid-column:1;grid-row:1"></div>`;
+  order.forEach((p,i)=>{const n=dayM.filter(m=>m.team.includes(p)).length;h+=`<div class="gh" style="grid-column:${i+2};grid-row:1"><span class="av ${p}">${p==="X"?"Ch":p}</span><div>${short(p)}<br><small>${n} meeting${n===1?"":"s"}</small></div></div>`});
+  for(let r=0;r<rows;r++){const t=START+r*STEP;h+=`<div class="tcell ${t%60?"half":""}" style="grid-column:1;grid-row:${r+2}">${t%30===0?fmt(t):""}</div>`;
+    order.forEach((p,i)=>{const busy=dayM.some(m=>m.team.includes(p)&&tm(m.start)<=t&&t<tm(m.end));h+=`<div class="slot ${t%60?"q":""} ${busy?"":"free"}" data-p="${p}" data-t="${fmt(t)}" style="grid-column:${i+2};grid-row:${r+2}" ${busy?"":`title="Free: click to add a walk-up for ${short(p)} at ${fmt(t)}"`}></div>`})}
+  const lane={};order.forEach(p=>{const l=dayM.filter(m=>m.team.includes(p));let groups=[];
+    l.forEach(m=>{let g=groups.find(g=>g.some(o=>tm(o.start)<tm(m.end)&&tm(m.start)<tm(o.end)));if(!g){g=[];groups.push(g)}g.push(m)});
+    groups.forEach(g=>{const ends=[];g.sort((a,b)=>tm(a.start)-tm(b.start)).forEach(m=>{let i=ends.findIndex(e=>e<=tm(m.start));if(i<0){i=ends.length;ends.push(0)}ends[i]=tm(m.end);lane[p+m.id]=[i,0]});
+      const n=ends.length;g.forEach(m=>{lane[p+m.id][1]=n})})});
+  dayM.forEach(m=>{const r0=(tm(m.start)-START)/STEP+2,r1=(tm(m.end)-START)/STEP+2;
+    m.team.forEach(p=>{const i=order.indexOf(p);const [li,ln]=lane[p+m.id]||[0,1];const ls=ln>1?`width:calc((100% - 8px) / ${ln} - 2px);margin-left:calc(4px + (100% - 8px) * ${li} / ${ln});justify-self:start;`:"";h+=`<button class="blk ${p} ${ln>1?"dbl":""} ${tm(m.end)-tm(m.start)<=15?"short":""} ${m.status==="awaiting"?"aw":""} ${m.status==="done"?"dn":""} ${m.lead===p?"lead":""}" style="grid-column:${i+2};grid-row:${r0}/${r1};${ls}" data-id="${m.id}" title="${esc(m.co)} · ${m.start}–${m.end}${ln>1?" · in parallel with another meeting":""}"><b>${m.status==="done"?"✓ ":""}${esc(m.co)}</b><span>${m.start}–${m.end} · ${esc(m.loc)}${m.changed?" · changed":""}${m.walk?" · walk-up":""}</span></button>`})});
+  g.innerHTML=h;
+  if(ME){const ci=order.indexOf(ME)+2;g.querySelectorAll(`[style*="grid-column:${ci};"]`).forEach(el=>{if(el.classList.contains("gh")||el.classList.contains("slot"))el.classList.add("mine")})}
+  const note=document.getElementById("daynote");const canc=sorted.filter(m=>m.day===curDay&&!live(m)).map(m=>m.co);
+  let t="";
+  if(curDay==="Thu"&&!dayM.length)t="Thursday 5 Nov has no meetings booked. Click any free slot to add a follow-up or walk-up.";
+  else{const sug=dayM.filter(m=>m.suggest).map(m=>`${m.co} (${m.start})`);if(sug.length)t=`Suggested booth visits placed in free slots: ${sug.join(", ")}. `}
+  if(canc.length)t+=` Cancelled and hidden: ${canc.join(", ")}.`;
+  note.textContent=t.trim();
+}
+document.getElementById("grid").addEventListener("click",e=>{const b=e.target.closest(".blk");if(b)return openBrief(b.dataset.id);const s=e.target.closest(".slot.free");if(s)openWalkup({day:curDay,start:s.dataset.t,team:[s.dataset.p]})});
+document.getElementById("addWalk").addEventListener("click",()=>openWalkup({day:curDay}));
+
+// ---------- now & next ----------
+const CONF={"2026-11-02":"Mon","2026-11-03":"Tue","2026-11-04":"Wed","2026-11-05":"Thu"};
+function istNow(){const p=Object.fromEntries(new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Istanbul",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).formatToParts(new Date()).map(x=>[x.type,x.value]));return {date:`${p.year}-${p.month}-${p.day}`,time:`${p.hour}:${p.minute}`}}
+const nd=document.getElementById("nowDay"),nt=document.getElementById("nowTime"),nl=document.getElementById("nowLive");
+nd.innerHTML=DORD.map(d=>`<option value="${d}">${DAYS[d]}</option>`).join("");
+let nowLive=true;
+function drawNow(){
+  const n=istNow();const liveDay=CONF[n.date];
+  if(nowLive){if(liveDay){nd.value=liveDay;nt.value=n.time}else if(!nt.value){nd.value="Mon";nt.value="10:30"}}
+  nl.innerHTML=nowLive&&liveDay?`<span class="pill st-confirmed">Live · Istanbul ${n.time}</span>`:`<span class="pill st-flexible">Preview</span> <span class="meta">${liveDay?"":"The conference has not started, so this shows a chosen time."}</span>`;
+  const d=nd.value,t=tm(nt.value||"09:00");
+  document.getElementById("nowCards").innerHTML="DSCX".split("").map(p=>{
+    const mine=sorted.filter(m=>live(m)&&m.day===d&&m.team.includes(p));
+    const cur=mine.find(m=>tm(m.start)<=t&&t<tm(m.end));const nxt=mine.find(m=>tm(m.start)>t);
+    const fut=mine.filter(m=>tm(m.start)>t).length;
+    const blk=(m,label,extra)=>m?`<button class="nowm" data-id="${m.id}"><span class="lbl">${label}</span><b>${esc(m.co)}${m.lead===p?" ★":""}</b><span>${m.start}–${m.end} · ${esc(m.loc)}${extra||""}</span><span class="meta">With ${m.team.filter(x=>x!==p).map(short).join(", ")||"no one else"}</span></button>`:"";
+    return `<div class="pcol nowc ${p===ME?"mine":""}" style="order:${p===ME?0:1}"><div class="phead"><span class="av ${p}">${p==="X"?"Ch":p}</span><div><h3>${PEOPLE[p].name}</h3><p>${fut} more today</p></div></div>
+      <div class="nowb">${cur?blk(cur,"Now",` · ${tm(cur.end)-t} min left`):`<div class="free-now"><span class="lbl">Now</span><b>Free</b><button class="btn" data-walk="${p}">Add walk-up here</button></div>`}
+      ${nxt?blk(nxt,"Next",` · in ${tm(nxt.start)-t} min`):`<div class="meta" style="padding:8px 0">Nothing else booked today.</div>`}</div></div>`}).join("");
+}
+document.getElementById("nowCards").addEventListener("click",e=>{const b=e.target.closest(".nowm");if(b)return openBrief(b.dataset.id);const w=e.target.closest("[data-walk]");if(w){const t=tm(nt.value||"09:00");openWalkup({day:nd.value,start:fmt(Math.ceil(t/15)*15),team:[w.dataset.walk]})}});
+[nd,nt].forEach(el=>el.addEventListener("input",()=>{nowLive=false;drawNow()}));
+document.getElementById("nowReset").addEventListener("click",()=>{nowLive=true;nt.value="";drawNow()});
+setInterval(()=>{if(!document.getElementById("v-now").hidden&&nowLive)drawNow()},30000);
+
+// ---------- client cards ----------
+const F={q:document.getElementById("fq"),day:document.getElementById("fday"),type:document.getElementById("ftype"),who:document.getElementById("fwho"),fit:document.getElementById("ffit"),st:document.getElementById("fst")};
+function fillTypes(){const cur=F.type.value;const types=[...new Set(M.map(m=>m.type))].sort();F.type.innerHTML=`<option value="">All types</option>`+types.map(t=>`<option ${t===cur?"selected":""}>${esc(t)}</option>`).join("")}
+function drawCards(){
+  fillTypes();
+  const q=F.q.value.trim().toLowerCase();
+  const list=sorted.filter(m=>(!q||[m.co,m.contact,m.country,m.type,m.does].join(" ").toLowerCase().includes(q))&&(!F.day.value||(F.day.value==="Flex"?m.status0==="flexible":m.day===F.day.value))&&(!F.type.value||m.type===F.type.value)&&(!F.who.value||m.team.includes(F.who.value))&&(m.fit>=+F.fit.value)&&(!F.st.value||m.status===F.st.value));
+  document.getElementById("cards").innerHTML=list.length?list.map(m=>`<button class="card ${live(m)?"":"cx"}" data-id="${m.id}">
+    <div class="row sp"><span class="when">${DAYS[m.day]} · ${m.start}–${m.end}</span>${stHtml(m.status)}</div>
+    <h3>${esc(m.co)}</h3>
+    <div class="row sp"><span class="meta">${esc(m.type)} · ${esc(m.country)}</span>${fitHtml(m.fit)}</div>
+    <div class="row">${m.existing?'<span class="pill tag-existing">Existing client</span>':""}${m.verify?'<span class="pill tag-verify">Verify profile</span>':""}${m.changed?'<span class="pill st-flexible">Team changed</span>':""}${m.walk?'<span class="pill st-flexible">Walk-up</span>':""}${m.note&&m.note.next?'<span class="pill st-done">Notes</span>':""}</div>
+    <div><div class="lbl">What they do</div><p>${esc(m.does)}</p></div>
+    <div class="prop"><div class="lbl">${m.note&&m.note.next?"Next step":"HWA proposes"}</div><p>${esc(m.note&&m.note.next?m.note.next:m.propose[0])}</p></div>
+    <div class="row sp"><span class="meta">${esc(m.contact)}</span>${avHtml(m.team)}</div>
+  </button>`).join(""):`<div class="empty">No meetings match these filters.</div>`;
+}
+Object.values(F).forEach(el=>el.addEventListener("input",drawCards));
+document.getElementById("cards").addEventListener("click",e=>{const c=e.target.closest(".card");if(c)openBrief(c.dataset.id)});
+
+// ---------- team agendas ----------
+function drawTeam(){
+  document.getElementById("team").innerHTML="DSCX".split("").map(p=>{
+    const mine=sorted.filter(m=>live(m)&&m.team.includes(p));const leads=mine.filter(m=>m.lead===p).length;
+    const mins=mine.reduce((s,m)=>s+tm(m.end)-tm(m.start),0);
+    let body="";
+    DORD.forEach(d=>{const l=mine.filter(m=>m.day===d);if(d==="Thu"&&!l.length)return;body+=`<div class="dayh">${DAYS[d]} · ${l.length}</div><ul class="ag">`;
+      let last=tm("09:00");
+      l.forEach(m=>{if(tm(m.start)-last>=45)body+=`<li class="gap">${fmt(last)}–${m.start} free</li>`;
+        body+=`<li data-id="${m.id}"><span class="t">${m.start}</span><span class="c"><b>${m.status==="done"?"✓ ":""}${esc(m.co)}${m.lead===p?" ★":""}</b><span>${esc(m.loc)} · until ${m.end}${m.status==="awaiting"?" · awaiting":""}${m.status0==="flexible"?" · booth":""}${m.walk?" · walk-up":""}</span></span></li>`;last=Math.max(last,tm(m.end))});
+      if(tm("17:30")-last>=45)body+=`<li class="gap">${fmt(last)}–17:30 free</li>`;
+      body+="</ul>"});
+    return `<div class="pcol"><div class="phead"><span class="av ${p}">${p==="X"?"Ch":p}</span><div><h3>${PEOPLE[p].name}</h3><p>${PEOPLE[p].role}</p></div></div>
+      <div class="load"><span><b>${mine.length}</b> meetings</span>·<span><b>${leads}</b> leads</span>·<span><b>${(mins/60).toFixed(1)}</b> h</span></div>${body}</div>`}).join("");
+}
+document.getElementById("team").addEventListener("click",e=>{const li=e.target.closest("li[data-id]");if(li)openBrief(li.dataset.id)});
+
+// ---------- pipeline ----------
+const LIK={10:"Low (10%)",30:"Possible (30%)",50:"Even (50%)",70:"Likely (70%)",90:"Near-certain (90%)"};
+const eur=v=>"€"+Math.round(v).toLocaleString("en-GB");
+function pipeRows(){return sorted.filter(m=>m.note&&(m.status==="done"||+m.note.value>0)).map(m=>{const v=Math.max(0,+m.note.value||0),l=LIK[+m.note.lik]?+m.note.lik:30;return {m,v,l,w:v*l/100}}).sort((a,b)=>b.w-a.w||b.m.fit-a.m.fit)}
+function drawPipe(){
+  const rows=pipeRows();const tot=rows.reduce((s,r)=>s+r.v,0),wt=rows.reduce((s,r)=>s+r.w,0);
+  const due=sorted.filter(m=>m.status==="done"&&!(m.note&&m.note.fuSent));
+  document.getElementById("pipeSum").innerHTML=`<div class="kp"><b>${rows.length}</b><span>Deals</span></div><div class="kp"><b>${eur(tot)}</b><span>Est. annual value</span></div><div class="kp"><b>${eur(wt)}</b><span>Weighted by likelihood</span></div><div class="kp ${due.length?"warn":""}"><b>${due.length}</b><span>Follow-ups not sent</span></div>`;
+  document.getElementById("pipeBody").innerHTML=rows.length?rows.map((r,i)=>{const n=r.m.note;const ow=PEOPLE[n.owner]?n.owner:r.m.lead;return `<tr data-id="${r.m.id}">
+    <td class="num">${i+1}</td><td><b>${esc(r.m.co)}</b><br><span class="meta">${esc(r.m.type)} · ${esc(r.m.country)}</span></td>
+    <td>${stHtml(r.m.status)}</td><td class="num">${r.v?eur(r.v):"—"}</td><td>${LIK[r.l]}</td><td class="num"><b>${r.v?eur(r.w):"—"}</b></td>
+    <td>${esc(n.next||"—")}</td><td>${avHtml([ow])} ${short(ow)}</td>
+    <td><label class="fu"><input type="checkbox" data-fu="${r.m.id}" ${n.fuSent?"checked":""}> Sent</label></td></tr>`}).join(""):`<tr><td colspan="9" class="empty">No deals yet. After a meeting, open it, set the status to Done and fill in the notes and estimated value.</td></tr>`;
+}
+document.getElementById("pipeBody").addEventListener("click",async e=>{const cb=e.target.closest("[data-fu]");if(cb){const id=cb.dataset.fu;const n={...(RAW.notes[id]||{}),fuSent:cb.checked,at:Date.now()};if(!await STORE.save("notes",id,n))cb.checked=!cb.checked;return}
+  const tr=e.target.closest("tr[data-id]");if(tr)openBrief(tr.dataset.id)});
+document.getElementById("copyPipe").addEventListener("click",async()=>{const rows=pipeRows();
+  const txt=["Rank\tCompany\tStatus\tEst. value (EUR)\tLikelihood\tWeighted (EUR)\tNext step\tFollow-up owner\tFollow-up sent",...rows.map((r,i)=>[i+1,r.m.co,ST[r.m.status],Math.round(r.v),LIK[r.l],Math.round(r.w),(r.m.note.next||"").replace(/\s+/g," "),PEOPLE[r.m.note.owner]?PEOPLE[r.m.note.owner].name:PEOPLE[r.m.lead].name,r.m.note.fuSent?"Yes":"No"].join("\t"))].join("\n");
+  const msg=document.getElementById("copyMsg");try{await navigator.clipboard.writeText(txt);msg.textContent="Copied. Paste into Excel or an email."}catch(e){const ta=document.getElementById("copyFallback");ta.hidden=false;ta.value=txt;ta.select();msg.textContent="Select-all is ready: press Ctrl+C / Cmd+C."}});
+
+// ---------- flags ----------
+function renderFlags(){
+const aw=M.filter(m=>m.status==="awaiting");
+const FLAGS=[
+ ...clashes.map(([p,d,a,b])=>({lvl:"hi",t:`Double-booked: ${PEOPLE[p].name}, ${DAYS[d]}`,p:`${a.co} (${a.start}–${a.end}) and ${b.co} (${b.start}–${b.end}) at the same time. Allowed: check this is intended, e.g. a joint meeting at one table or dropping into the second one.`})),
+ ...(aw.length?[{lvl:"hi",t:`${aw.length} meeting${aw.length===1?"":"s"} awaiting confirmation`,p:aw.map(m=>`${m.co} (${DAYS[m.day]} ${m.start}, Fit ${m.fit||"?"})`).join("; ")+". Chase before Monday, then set the status to Confirmed in the meeting."}]:[]),
+ {lvl:"hi",t:"Existing clients missing from the new sheet",p:"MAWDY (Mapfre, Zigor Diez Gamboa), Healix International (partner review) and Medifly are not on the 29 Oct sheet. Confirm whether these meetings were dropped or are just not entered."},
+ {lvl:"",t:"Cedric Henriot booked twice",p:"Mon 15:30 (with Patrik Karlsson) and Wed 11:30 (Scandic Services). He is the founder of Scandic Services / MedevacX, Cyprus. Merge into Monday and the CEO and Clara get Wed 11:30 back."},
+ {lvl:"",t:"Parallel meetings at different locations",p:"Mon 15:00 Unicair (Booth 37) and Hearts First (Tabletop M); Tue 10:30 CEGA (Reg Desk) and Hospiten (Booth 13); Tue 15:00 Mutuaide and Meditrans; Tue 16:00 IMG and Anher; Wed 11:30 Scandic and Medresq. The team splits as shown in the grid."},
+ {lvl:"",t:"Air ambulance requests not reflected",p:"Of the 27 air ambulance requests sent 16 Oct, only Unicair, Tyrol, Nordic AirAmbulance and Meditrans appear. Sami has free windows on Mon 09:00–10:30, Tue 09:00–10:30 and 13:30–14:45, Wed from 13:00 and all of Thursday for any late replies."},
+ {lvl:"",t:`Christina carries ${M.filter(m=>live(m)&&m.team.includes("X")).length} meetings`,p:"She covers the low-value hospital meetings so Clara and the CEO can take payers. If Christina does not travel, move Samitivej, Clinica San Fernando, Trails of Indochina and MedPark to Clara, and drop the two lowest-fit ones if Clara is double-booked."},
+ {lvl:"",t:`Clara's Tuesday is dense (${M.filter(m=>live(m)&&m.day==="Tue"&&m.team.includes("C")).length} meetings)`,p:"Several are back-to-back between Booth 13, an unknown HealthMetrics location and the Reg Desk. Ask HealthMetrics and Medicana for their locations."},
+ {lvl:"",t:"Profiles to verify before meeting",p:"Medexpress (Eugene Stefanopoulos), Grupo Rescue, Medresq, Medexa and ISAS could not be fully confirmed from public sources. Check LinkedIn or the ITIC app before each meeting."},
+ {lvl:"info",t:"Thursday 5 Nov is empty",p:"Book follow-ups with Fit 4–5 contacts who could not meet Mon–Wed, or hold it for walk-ups."},
+ {lvl:"info",t:"Prep pack for Istanbul",p:"One-page capability sheet; Greece/Cyprus/Balkans/Egypt coverage map; indicative ground-transfer rates for Athens, Thessaloniki, Larnaca and Cairo; 2026 case stats for Tyrol and Unicair."}
+];
+document.getElementById("flags").innerHTML=FLAGS.map(f=>`<div class="flag ${f.lvl}"><h4>${esc(f.t)}</h4><p>${esc(f.p)}</p></div>`).join("");
+document.getElementById("nFlags").textContent=FLAGS.length;}
+
+// ---------- drawer ----------
+const drawer=document.getElementById("drawer"),scrim=document.getElementById("scrim");let lastFocus=null;
+const shareNote=()=>STORE.shared?"Saved for the whole team.":"Saved on this device; syncs when online.";
+function teamPicker(team,lead){return `<div class="pick" id="pick">${"DSCX".split("").map(p=>`<button type="button" class="pk" data-p="${p}" aria-pressed="${team.includes(p)}"><span class="av ${p}">${p==="X"?"Ch":p}</span>${short(p)}</button>`).join("")}</div>
+  <div class="row" style="margin-top:8px"><label for="leadSel" class="meta">Leads the meeting</label><select id="leadSel"></select></div><div id="pickWarn"></div>`}
+function wirePicker(initTeam,initLead,slot,onChange){
+  let sel=[...initTeam],lead=initLead;
+  const pick=document.getElementById("pick"),ls=document.getElementById("leadSel"),warn=document.getElementById("pickWarn");
+  function sync(){pick.querySelectorAll(".pk").forEach(b=>b.setAttribute("aria-pressed",sel.includes(b.dataset.p)));
+    if(!sel.includes(lead))lead=sel[0]||"";
+    ls.innerHTML=sel.map(p=>`<option value="${p}" ${p===lead?"selected":""}>${PEOPLE[p].name}</option>`).join("");ls.disabled=!sel.length;
+    const s=slot();const w=s?sel.flatMap(p=>overlapFor(s.m,p,s.day,s.start,s.end).map(o=>`${short(p)} is also at ${o.co} (${o.start}–${o.end})`)):[];
+    warn.innerHTML=(sel.length?"":`<div class="alert v" style="margin-top:8px">Pick at least one person.</div>`)+w.map(x=>`<div class="alert" style="margin-top:8px">Two meetings at once (allowed): ${esc(x)}</div>`).join("");
+    onChange(sel,lead)}
+  pick.addEventListener("click",e=>{const b=e.target.closest(".pk");if(!b)return;const p=b.dataset.p;sel=sel.includes(p)?sel.filter(x=>x!==p):"DSCX".split("").filter(x=>sel.includes(x)||x===p);sync()});
+  ls.addEventListener("change",()=>{lead=ls.value;onChange(sel,lead)});
+  sync();return {get:()=>({team:sel,lead}),sync}}
+function openDrawer(html){lastFocus=lastFocus||document.activeElement;drawer.innerHTML=html;drawer.hidden=false;scrim.hidden=false;document.getElementById("dClose").focus();document.getElementById("dClose").onclick=closeBrief}
+
+function openBrief(id){const m=M.find(x=>x.id===id);if(!m)return;const n=m.note||{};
+  openDrawer(`<div class="dhead"><div><h3 id="dTitle">${esc(m.co)}</h3><p>${DAYS[m.day]} · ${m.start}–${m.end} · ${esc(m.loc)}</p></div><button class="xbtn" id="dClose" aria-label="Close">×</button></div>
+  <div class="dbody">
+    <div class="row">${stHtml(m.status)}${m.existing?'<span class="pill tag-existing">Existing client</span>':""}${m.verify?'<span class="pill tag-verify">Verify profile</span>':""}${m.suggest?'<span class="pill st-flexible">Suggested slot</span>':""}${m.walk?'<span class="pill st-flexible">Walk-up</span>':""}</div>
+    ${m.flag?`<div class="alert">${esc(m.flag)}</div>`:""}
+    <dl class="facts"><dt>Contact</dt><dd>${esc(m.contact)}</dd><dt>Type</dt><dd>${esc(m.type)}</dd><dt>Country</dt><dd>${esc(m.country)}</dd><dt>Fit</dt><dd>${fitHtml(m.fit)} ${m.fit?m.fit+"/5":"to qualify"}</dd>
+      <dt>HWA team</dt><dd>${avHtml(m.team)} ${m.team.map(p=>short(p)+(m.lead===p?" (lead)":"")).join(", ")}</dd></dl>
+
+    <details class="editor" id="edNotes" ${m.note||m.status==="done"?"open":""}><summary>Status &amp; meeting notes</summary>
+      <div class="form">
+        <div class="fld"><label for="nSt">Status</label><select id="nSt">${["confirmed","awaiting","flexible","done","cancelled"].map(s=>`<option value="${s}" ${s===m.status?"selected":""}>${ST[s]}</option>`).join("")}</select></div>
+        <div class="fld"><label for="nOwner">Follow-up owner</label><select id="nOwner">${"DSCX".split("").map(p=>`<option value="${p}" ${(n.owner||m.lead)===p?"selected":""}>${PEOPLE[p].name}</option>`).join("")}</select></div>
+        <div class="fld w"><label for="nNeeds">What they need</label><textarea id="nNeeds" rows="2" maxlength="600">${esc(n.needs)}</textarea></div>
+        <div class="fld"><label for="nVol">Volumes</label><input id="nVol" maxlength="160" value="${esc(n.vol)}" placeholder="e.g. 40 cases/summer in Greece"></div>
+        <div class="fld"><label for="nProv">Current provider</label><input id="nProv" maxlength="160" value="${esc(n.prov)}"></div>
+        <div class="fld w"><label for="nDec">Decision-maker</label><input id="nDec" maxlength="160" value="${esc(n.dec)}"></div>
+        <div class="fld w"><label for="nNext">Next step</label><input id="nNext" maxlength="300" value="${esc(n.next)}" placeholder="e.g. Send rate sheet by Fri 6 Nov"></div>
+        <div class="fld"><label for="nVal">Est. annual value (€)</label><input id="nVal" type="number" min="0" step="1000" value="${+n.value>0?+n.value:""}"></div>
+        <div class="fld"><label for="nLik">Likelihood</label><select id="nLik">${Object.entries(LIK).map(([k,v])=>`<option value="${k}" ${(+n.lik||30)===+k?"selected":""}>${v}</option>`).join("")}</select></div>
+        <label class="fu w"><input type="checkbox" id="nFu" ${n.fuSent?"checked":""}> Follow-up email sent</label>
+      </div>
+      <div class="row" style="margin-top:10px"><button type="button" class="btn pri" id="saveNotes">Save notes</button><span class="meta" id="notesMsg" role="status"></span></div>
+    </details>
+
+    <details class="editor" ${m.changed?"open":""}><summary>Change who attends</summary>
+      ${teamPicker(m.team,m.lead)}
+      <div class="row" style="margin-top:10px"><button type="button" class="btn pri" id="saveTeam">Save change</button><button type="button" class="btn" id="resetTeam" ${m.changed?"":"hidden"}>Back to original plan</button><span class="meta" id="saveMsg" role="status"></span></div>
+      <p class="meta" style="margin-top:6px">Original plan: ${m.team0.map(short).join(" + ")}, lead ${short(m.lead0)}. ${shareNote()}</p>
+    </details>
+
+    ${m.walk?"":`<div class="sec"><h5>Why these attendees${m.changed?" (original plan)":""}</h5><p>${esc(m.why)}</p></div>`}
+    <div class="sec"><h5>What they do</h5><p>${esc(m.does)}</p></div>
+    ${m.needs.length?`<div class="sec"><h5>What they likely need from HWA</h5><ul>${m.needs.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>`:""}
+    <div class="sec"><h5>What HWA proposes</h5><ul>${m.propose.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>
+    ${m.talk.length?`<div class="sec"><h5>Talking points</h5><ul>${m.talk.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>`:""}
+    ${m.obj.length?`<div class="sec"><h5>Likely objections</h5><div class="obj">${m.obj.map(([q,a])=>`<div><b>"${esc(q)}"</b>${esc(a)}</div>`).join("")}</div></div>`:""}
+    <div class="sec"><h5>Goal for the meeting</h5><div class="goal">${esc(m.goal)}</div></div>
+    ${m.walk?`<div class="row"><button type="button" class="btn" id="editWalk">Edit walk-up</button><button type="button" class="btn danger" id="delWalk">Delete walk-up</button><span class="meta" id="delMsg" role="status"></span></div>`:""}
+  </div>`);
+  // notes
+  document.getElementById("saveNotes").onclick=async()=>{const g=i=>document.getElementById(i);const msg=g("notesMsg");msg.textContent="Saving…";
+    const data={status:g("nSt").value,owner:g("nOwner").value,needs:g("nNeeds").value.slice(0,600),vol:g("nVol").value.slice(0,160),prov:g("nProv").value.slice(0,160),dec:g("nDec").value.slice(0,160),next:g("nNext").value.slice(0,300),value:Math.max(0,Math.round(+g("nVal").value||0)),lik:+g("nLik").value,fuSent:g("nFu").checked,at:Date.now()};
+    const ok=await STORE.save("notes",m.id,data);if(ok){openBrief(m.id);document.getElementById("notesMsg").textContent="Saved. "+shareNote()}else msg.textContent="Could not save. You may only have view access."};
+  // team
+  const pk=wirePicker(m.team,m.lead,()=>({m,day:m.day,start:m.start,end:m.end}),sel=>{document.getElementById("saveTeam").disabled=!sel.length});
+  document.getElementById("saveTeam").onclick=async()=>{const msg=document.getElementById("saveMsg");msg.textContent="Saving…";const v=pk.get();
+    const ok=await STORE.save("assignments",m.id,{team:v.team,lead:v.lead,at:Date.now()});if(ok){openBrief(m.id);document.getElementById("saveMsg").textContent="Saved"}else msg.textContent="Could not save. You may only have view access."};
+  document.getElementById("resetTeam").onclick=async()=>{const ok=await STORE.remove("assignments",m.id);if(ok){openBrief(m.id);document.getElementById("saveMsg").textContent="Back to original plan"}};
+  if(m.walk){const wid=m.id.slice(3);document.getElementById("editWalk").onclick=()=>openWalkup({...RAW.walkups[wid]},wid);
+    let armed=false;document.getElementById("delWalk").onclick=async e=>{if(!armed){armed=true;e.target.textContent="Tap again to delete";document.getElementById("delMsg").textContent="This removes it for everyone.";return}
+      if(await STORE.remove("walkups",wid)){await STORE.remove("notes",m.id);await STORE.remove("assignments",m.id);closeBrief()}}}
+}
+
+function openWalkup(pre,wid){pre=pre||{};
+  const day=DORD.includes(pre.day)?pre.day:"Mon",start=/^\d\d:\d\d$/.test(pre.start||"")?pre.start:"13:00",dur=[15,30,45,60].includes(+pre.dur)?+pre.dur:30;
+  const team=okTeam(pre.team)?pre.team:["D"],lead=team.includes(pre.lead)?pre.lead:team[0];
+  openDrawer(`<div class="dhead"><div><h3 id="dTitle">${wid?"Edit walk-up":"Add walk-up meeting"}</h3><p>${STORE.shared?"Everyone on the team will see it.":"Saved in this browser only."}</p></div><button class="xbtn" id="dClose" aria-label="Close">×</button></div>
+  <div class="dbody"><form id="wkForm" class="form">
+    <div class="fld w"><label for="wkCo">Company</label><input id="wkCo" required maxlength="120" value="${esc(pre.co)}" placeholder="e.g. Allianz Partners"></div>
+    <div class="fld"><label for="wkContact">Contact</label><input id="wkContact" maxlength="160" value="${esc(pre.contact)}"></div>
+    <div class="fld"><label for="wkType">Type</label><input id="wkType" list="typeList" maxlength="60" value="${esc(pre.type)}" placeholder="Assistance company"></div>
+    <div class="fld"><label for="wkCountry">Country</label><input id="wkCountry" maxlength="60" value="${esc(pre.country)}"></div>
+    <div class="fld"><label for="wkLoc">Location</label><input id="wkLoc" maxlength="80" value="${esc(pre.loc)}" placeholder="Booth / Reg Desk"></div>
+    <div class="fld"><label for="wkDay">Day</label><select id="wkDay">${DORD.map(d=>`<option value="${d}" ${d===day?"selected":""}>${DAYS[d]}</option>`).join("")}</select></div>
+    <div class="fld"><label for="wkStart">Start</label><input id="wkStart" type="time" step="900" min="08:00" max="18:00" value="${start}"></div>
+    <div class="fld"><label for="wkDur">Length</label><select id="wkDur">${[15,30,45,60].map(x=>`<option value="${x}" ${x===dur?"selected":""}>${x} min</option>`).join("")}</select></div>
+    <div class="fld"><label for="wkFit">Fit</label><select id="wkFit"><option value="0">Not scored</option>${[1,2,3,4,5].map(x=>`<option value="${x}" ${+pre.fit===x?"selected":""}>${x}/5</option>`).join("")}</select></div>
+    <div class="fld w"><label for="wkDoes">What they do</label><textarea id="wkDoes" rows="2" maxlength="600">${esc(pre.does)}</textarea></div>
+    <div class="fld w"><label for="wkProp">What HWA proposes</label><textarea id="wkProp" rows="2" maxlength="600">${esc(pre.propose)}</textarea></div>
+    <div class="fld w"><label for="wkGoal">Goal</label><input id="wkGoal" maxlength="200" value="${esc(pre.goal)}" placeholder="e.g. Rate sheet and follow-up call"></div>
+    <div class="fld w"><span class="meta">Who attends</span>${teamPicker(team,lead)}</div>
+    <div class="row w"><button type="submit" class="btn pri" id="wkSave">${wid?"Save walk-up":"Add to schedule"}</button><span class="meta" id="wkMsg" role="status"></span></div>
+  </form><datalist id="typeList">${[...new Set(BASE.map(m=>m.type))].sort().map(t=>`<option value="${esc(t)}">`).join("")}</datalist></div>`);
+  const g=i=>document.getElementById(i);
+  const slot=()=>{const s=g("wkStart").value;if(!/^\d\d:\d\d$/.test(s))return null;return {m:wid?M.find(x=>x.id==="wk-"+wid):null,day:g("wkDay").value,start:s,end:fmt(tm(s)+ +g("wkDur").value)}};
+  const pk=wirePicker(team,lead,slot,sel=>{g("wkSave").disabled=!sel.length});
+  ["wkDay","wkStart","wkDur"].forEach(i=>g(i).addEventListener("input",()=>pk.sync()));
+  g("wkForm").addEventListener("submit",async e=>{e.preventDefault();const s=g("wkStart").value;
+    if(!g("wkCo").value.trim()){g("wkMsg").textContent="Add the company name.";g("wkCo").focus();return}
+    if(!/^\d\d:\d\d$/.test(s)){g("wkMsg").textContent="Set a start time.";return}
+    const q=Math.round(tm(s)/15)*15;const v=pk.get();
+    const data={co:g("wkCo").value.trim().slice(0,120),contact:g("wkContact").value.slice(0,160),type:g("wkType").value.slice(0,60),country:g("wkCountry").value.slice(0,60),loc:g("wkLoc").value.slice(0,80),day:g("wkDay").value,start:fmt(q),dur:+g("wkDur").value,fit:+g("wkFit").value,does:g("wkDoes").value.slice(0,600),propose:g("wkProp").value.slice(0,600),goal:g("wkGoal").value.slice(0,200),team:v.team,lead:v.lead,at:Date.now()};
+    const id=wid||("w"+Date.now().toString(36)+Math.random().toString(36).slice(2,6));
+    g("wkMsg").textContent="Saving…";
+    if(await STORE.save("walkups",id,data)){curDay=data.day;seg.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x.dataset.d===curDay));drawGrid();openBrief("wk-"+id)}else g("wkMsg").textContent="Could not save. You may only have view access."});
+  g("wkCo").focus()}
+function closeBrief(){drawer.hidden=true;scrim.hidden=true;if(lastFocus)lastFocus.focus();lastFocus=null}
+scrim.addEventListener("click",closeBrief);
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!drawer.hidden)closeBrief()});
+
+// ---------- who am I (per device) ----------
+let ME="";try{ME=localStorage.getItem("itic-me")||""}catch(e){}
+const meSel=document.getElementById("meSel");meSel.value="DSCX".includes(ME)&&ME?ME:"";
+meSel.addEventListener("change",()=>{ME=meSel.value;try{localStorage.setItem("itic-me",ME)}catch(e){}F.who.value=ME;renderAll()});
+if(ME)F.who.value=ME;
+// ---------- Firebase (healthwatch-tpa) ----------
+const FIREBASE_CONFIG={apiKey:"AIzaSyBVHIIFxRQvHotsM_lEwGpCTJtc2HRhofc",authDomain:"healthwatch-tpa.firebaseapp.com",projectId:"healthwatch-tpa",storageBucket:"healthwatch-tpa.firebasestorage.app",messagingSenderId:"189053320217",appId:"1:189053320217:web:7f88560dbd0098aca37e88"};
+const FB_PREFIX="itic2026_";
+async function fbAdapter(){
+  try{if(!window.firebase)return null;if(!firebase.apps.length)firebase.initializeApp(FIREBASE_CONFIG);
+    const f=firebase.firestore();try{await f.enablePersistence({synchronizeTabs:true})}catch(e){}
+    const plain=d=>JSON.parse(JSON.stringify(d||{}));
+    return {doc:p=>{const [c,id]=p.split("/");const r=f.collection(FB_PREFIX+c).doc(id);return {set:d=>r.set(plain(d)),delete:()=>r.delete()}},
+      collection:c=>({onSnapshot:(next,err)=>f.collection(FB_PREFIX+c).onSnapshot(sn=>{setSync(!sn.metadata.fromCache,sn.metadata.fromCache?"Offline: showing saved copy, will sync when online":"Live: changes sync to the whole team");next({docs:sn.docs.map(d=>({id:d.id,data:()=>d.data()}))})},e=>{setSync(false,"Sync error: "+(e&&e.code||"unknown"));err&&err(e)})})}}
+  catch(e){return null}}
+// ---------- PIN gate ----------
+const PIN_HASH="251b8ce1d6b224bdcd59eb5278d5cf5f9cc9b20a57a99d106f4e76febdae256b";
+let pinResolve;const PIN_OK=new Promise(r=>pinResolve=r);
+async function sha(t){const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(t));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("")}
+(async()=>{const gate=document.getElementById("pinGate");let ok=false;try{ok=localStorage.getItem("itic-pin")===PIN_HASH}catch(e){}
+  if(ok){gate.hidden=true;pinResolve();return}
+  document.body.classList.add("locked");gate.hidden=false;const inp=document.getElementById("pinIn");inp.focus();
+  document.getElementById("pinForm").addEventListener("submit",async e=>{e.preventDefault();const v=await sha("hwa-itic-2026:"+inp.value.trim());
+    if(v===PIN_HASH){try{localStorage.setItem("itic-pin",v)}catch(e){}gate.hidden=true;document.body.classList.remove("locked");pinResolve()}else{document.getElementById("pinMsg").textContent="Wrong PIN. Ask Dr. Sami for the team PIN.";inp.select()}})})();
+// ---------- boot ----------
+function renderAll(){computeClashes();renderKpis();renderFlags();drawGrid();drawCards();drawTeam();drawPipe();if(!document.getElementById("v-now").hidden)drawNow()}
+setMode(MODE);loadLocal();rebuild();show(location.hash.slice(1));
+const syncEl=document.getElementById("sync");const setSync=(on,t)=>{syncEl.classList.toggle("on",on);syncEl.querySelector("span").textContent=t};
+(async()=>{await PIN_OK;const db=await fbAdapter();if(!db){setSync(false,"Offline: changes stay on this device until the connection returns");return}
+  setSync(true,"Live: changes sync to the whole team");
+  STORE.db=db;STORE.shared=true;for(const c in RAW)RAW[c]={};
+  for(const c of Object.keys(RAW))db.collection(c).onSnapshot(snap=>{const o={};snap.docs.forEach(d=>{o[d.id]=d.data()});RAW[c]=o;rebuild()},()=>{});})();
+</script>
+</body></html>
