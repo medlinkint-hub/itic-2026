@@ -83,7 +83,7 @@ h2{font-size:20.5px;margin:0;color:var(--navy-ink)}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
 
 /* person tokens */
-.av{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;font-size:13px;font-weight:800;color:#fff}
+.av{display:inline-grid;place-items:center;letter-spacing:-.04em;width:24px;height:24px;border-radius:50%;font-size:13px;font-weight:800;color:#fff}
 .av.D{background:var(--pD)}.av.S{background:var(--pS)}.av.C{background:var(--pC)}.av.X{background:var(--pX)}
 :root:not([data-theme="light"]) .av{color:#fff}
 .avs{display:inline-flex;gap:3px}
@@ -140,7 +140,7 @@ h2{font-size:20.5px;margin:0;color:var(--navy-ink)}
 .empty{padding:30px;text-align:center;color:var(--muted)}
 
 /* team */
-.team{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:14px}
+.team{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-top:14px}
 .pcol{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden;min-width:0}
 .phead{padding:12px 14px;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:center}
 .phead .av{width:34px;height:34px;font-size:15.5px}
@@ -310,6 +310,18 @@ h2{font-size:20.5px;margin:0;color:var(--navy-ink)}
   footer{padding-bottom:20px}
 }
 .ftog{display:none}
+.av.g0{background:#B7791F}.av.g1{background:#2B6CB0}.av.g2{background:#9C4221}.av.g3{background:#2F855A}.av.g4{background:#97266D}.av.g5{background:#4A5568}
+.blk.g0{border-left-color:#B7791F;background:#FAF0DC}.blk.g1{border-left-color:#2B6CB0;background:#E1ECF8}.blk.g2{border-left-color:#9C4221;background:#F7E5DC}.blk.g3{border-left-color:#2F855A;background:#E0F2E7}.blk.g4{border-left-color:#97266D;background:#F6E1EC}.blk.g5{border-left-color:#4A5568;background:#E8EBEF}
+.members{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;margin-top:14px;display:grid;gap:10px}
+.members h3{margin:0;font-size:18px}
+.mlist{display:flex;flex-wrap:wrap;gap:8px}
+.mchip{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:22px;padding:4px 6px 4px 4px;background:var(--surface-2)}
+.mchip small{color:var(--muted);font-weight:500}
+.mchip .x{border:0;background:transparent;color:var(--bad);font-size:20px;line-height:1;width:30px;height:30px;border-radius:50%;cursor:pointer}
+.mchip.gone{opacity:.6}
+.addm{display:flex;flex-wrap:wrap;gap:8px}
+.addm input{flex:1 1 160px;min-width:0;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg);font:inherit}
+.pk.new{opacity:1;border-style:dashed;padding:6px 14px}
 b,strong,h1,h2,h3,h4,th{font-weight:800}
 input,select,textarea{font-weight:500}
 .st-noshow{background:var(--bad-bg);color:var(--bad)}
@@ -376,7 +388,7 @@ footer{color:var(--muted);font-size:14.5px;padding-block:0 30px}
         <p>HealthWatch Assistance S.A. · Thessaloniki, Greece · Istanbul, Mon 2 – Thu 5 Nov 2026</p><p class="msub">Istanbul · 2–5 Nov 2026</p>
       </div>
     </div>
-    <div><div class="kpis" id="kpis"></div><div class="mrow"><div class="sync" id="sync"><i></i><span class="lf">Connecting…</span><span class="ls">Connecting…</span></div><span class="me"><label for="meSel">I am</label><select id="meSel"><option value="">Choose…</option><option value="D">Dr. Dimitri</option><option value="S">Dr. Sami</option><option value="C">Clara</option><option value="X">Christina</option></select></span></div></div>
+    <div><div class="kpis" id="kpis"></div><div class="mrow"><div class="sync" id="sync"><i></i><span class="lf">Connecting…</span><span class="ls">Connecting…</span></div><span class="me"><label for="meSel">I am</label><select id="meSel"><option value="">Choose…</option></select></span></div></div>
   </div>
 </header>
 
@@ -403,13 +415,7 @@ footer{color:var(--muted);font-size:14.5px;padding-block:0 30px}
       <div class="row ctrl"><div class="seg" id="modeSeg" role="group" aria-label="Layout"><button data-m="time" aria-pressed="true">By time</button><button data-m="person" aria-pressed="false">By person</button></div><div class="seg" id="daySeg" role="group" aria-label="Day"></div><button type="button" class="btn" id="mineTog" aria-pressed="false" hidden>Only mine</button><button type="button" class="btn pri" id="addWalk">+ Add walk-up</button></div>
     </div>
     <div class="row sp" style="margin-top:10px">
-      <div class="legend">
-        <span><i style="background:var(--pD)"></i>Dr. Dimitri · CEO</span>
-        <span><i style="background:var(--pS)"></i>Dr. Sami · Medical</span>
-        <span><i style="background:var(--pC)"></i>Clara · Network</span>
-        <span><i style="background:var(--pX)"></i>Christina · Finance</span>
-        <span><i style="background:var(--surface-2);border:1px solid var(--line)"></i>Hatched = free</span>
-      </div>
+      <div class="legend" id="legend"></div>
     </div>
     <div id="myday" class="myday"></div>
     <div id="slots" class="slots"></div>
@@ -433,7 +439,7 @@ footer{color:var(--muted);font-size:14.5px;padding-block:0 30px}
       <div class="q"><label for="fq">Search</label><input id="fq" type="search" placeholder="Search company, contact, country…"><button type="button" class="btn ftog" id="fTog" aria-expanded="false" aria-controls="fltrs">Filters</button></div>
       <div><label for="fday">Day</label><select id="fday"><option value="">All days</option><option value="Mon">Mon 2 Nov</option><option value="Tue">Tue 3 Nov</option><option value="Wed">Wed 4 Nov</option><option value="Flex">Booth / any time</option></select></div>
       <div><label for="ftype">Type</label><select id="ftype"><option value="">All types</option></select></div>
-      <div><label for="fwho">Attendee</label><select id="fwho"><option value="">Whole team</option><option value="D">Dr. Dimitri</option><option value="S">Dr. Sami</option><option value="C">Clara</option><option value="X">Christina</option></select></div>
+      <div><label for="fwho">Attendee</label><select id="fwho"><option value="">Whole team</option></select></div>
       <div><label for="fst">Status</label><select id="fst"><option value="">Any status</option><option value="confirmed">Confirmed</option><option value="awaiting">Awaiting</option><option value="flexible">Booth / flexible</option><option value="done">Done</option><option value="noshow">No-show</option><option value="cancelled">Cancelled</option></select></div>
       <div><label for="ffit">Fit</label><select id="ffit"><option value="0">Any fit</option><option value="4">Fit 4–5</option><option value="3">Fit 3+</option></select></div>
     </div>
@@ -443,6 +449,7 @@ footer{color:var(--muted);font-size:14.5px;padding-block:0 30px}
   <section class="view" id="v-team" hidden>
     <h2>Team agendas</h2>
     <p class="sub">Each person's day in order, with free windows for walk-ups and booth visits.</p>
+    <div class="members" id="members"></div>
     <div class="team" id="team"></div>
   </section>
 
@@ -477,6 +484,12 @@ const PEOPLE={
   C:{name:"Clara",role:"Network & Client Manager"},
   X:{name:"Christina",role:"Accounting & Client Manager"}
 };
+const BASEP=JSON.parse(JSON.stringify(PEOPLE)),BASE_ORDER=Object.keys(PEOPLE);
+const ALLP=()=>[...BASE_ORDER,...Object.keys(PEOPLE).filter(p=>!BASEP[p]).sort((a,b)=>(PEOPLE[a].at||0)-(PEOPLE[b].at||0))];
+const PIDS=()=>ALLP().filter(p=>!PEOPLE[p].gone);
+const pc=p=>BASEP[p]?p:"g"+(ALLP().filter(x=>!BASEP[x]).indexOf(p)%6);
+const ini=p=>{if(p==="X")return "Ch";if(BASEP[p])return p;const w=(PEOPLE[p]?PEOPLE[p].name:"?").replace(/^(Dr|Mr|Mrs|Ms)\.?\s+/i,"").split(/\s+/).filter(Boolean);return ((w[0]||"?")[0]+(w[1]?w[1][0]:"")).toUpperCase()};
+const avS=p=>`<span class="av ${pc(p)}">${esc(ini(p))}</span>`;
 const DAYS={Mon:"Mon 2 Nov",Tue:"Tue 3 Nov",Wed:"Wed 4 Nov",Thu:"Thu 5 Nov",Flex:"Booth / any time"};
 
 // m: day,start,end,loc,co,contact,type,country,status,fit(0=unknown),team,lead,does,needs,propose,talk,obj,goal,flag,verify,existing,suggest
@@ -729,8 +742,8 @@ const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&g
 const fitHtml=f=>f?`<span class="fit" title="Fit ${f}/5">${[1,2,3,4,5].map(i=>`<i class="${i<=f?"on":""}"></i>`).join("")}</span>`:`<span class="pill tag-verify">Fit ?</span>`;
 const ST={confirmed:"Confirmed",awaiting:"Awaiting",flexible:"Booth / flexible",done:"Done",noshow:"No-show",cancelled:"Cancelled"};
 const stHtml=s=>`<span class="pill st-${s}">${ST[s]||s}</span>`;
-const avHtml=t=>`<span class="avs">${t.map(p=>`<span class="av ${p}" title="${PEOPLE[p].name}">${p==="X"?"Ch":p}</span>`).join("")}</span>`;
-const short=p=>PEOPLE[p].name.replace("Dr. Sami Alzubaidi","Dr. Sami");
+const avHtml=t=>`<span class="avs">${t.map(p=>`<span class="av ${pc(p)}" title="${esc(PEOPLE[p]?PEOPLE[p].name:"")}">${esc(ini(p))}</span>`).join("")}</span>`;
+const short=p=>PEOPLE[p]?PEOPLE[p].name.replace("Dr. Sami Alzubaidi","Dr. Sami"):"Former member";
 const DORD=["Mon","Tue","Wed","Thu"];
 let sorted=[];
 const live=m=>m.status!=="cancelled";
@@ -748,19 +761,24 @@ const STORE={shared:false,db:null,
   async remove(col,id){if(this.db){try{await Promise.race([this.db.doc(col+"/"+id).delete(),new Promise(r=>setTimeout(r,2500))])}catch(e){return false}}delete RAW[col][id];if(!this.db)saveLocal();rebuild();return true}};
 
 const str=(v,n=300)=>typeof v==="string"?v.slice(0,n):"";
-const okTeam=t=>Array.isArray(t)&&t.length&&t.every(p=>typeof p==="string"&&p.length===1&&"DSCX".includes(p));
+const okTeam=t=>Array.isArray(t)&&t.length&&t.every(p=>typeof p==="string"&&!!PEOPLE[p]);
+const cleanTeam=t=>{const a=PIDS().filter(p=>t.includes(p));return a.length?a:ALLP().filter(p=>t.includes(p))};
+function applyPeople(){for(const k of Object.keys(PEOPLE))if(!BASEP[k])delete PEOPLE[k];for(const k in BASEP)PEOPLE[k]={...BASEP[k]};
+  Object.entries(RAW.assignments).forEach(([id,v])=>{if(!id.startsWith("_p_")||!v||typeof v!=="object")return;const p=id.slice(3);if(!/^[A-Za-z0-9]{1,16}$/.test(p))return;
+    if(BASEP[p]){PEOPLE[p].gone=!!v.gone;return}const name=str(v.name,60).trim();if(!name)return;PEOPLE[p]={name,role:str(v.role,80).trim()||"HWA team",gone:!!v.gone,at:+v.at||0}})}
 function walkToMeeting(id,w){
   if(!w||!DORD.includes(w.day)||!/^\d\d:\d\d$/.test(w.start||"")||!okTeam(w.team))return null;
   const dur=[15,30,45,60].includes(+w.dur)?+w.dur:30;
-  const team="DSCX".split("").filter(p=>w.team.includes(p));
+  const team=cleanTeam(w.team);
   return {id:"wk-"+id,walk:true,day:w.day,start:w.start,end:fmt(tm(w.start)+dur),dur,loc:str(w.loc,80)||"TBC",co:str(w.co,120)||"Walk-up meeting",contact:str(w.contact,160)||"—",
     type:str(w.type,60)||"Walk-up",country:str(w.country,60)||"—",status:"confirmed",fit:[1,2,3,4,5].includes(+w.fit)?+w.fit:0,team,lead:team.includes(w.lead)?w.lead:team[0],
     does:str(w.does,600)||"Added during the conference.",needs:[],propose:[str(w.propose,600)||"To be decided in the meeting."],talk:[],obj:[],goal:str(w.goal,200)||"Qualify and agree a next step.",why:"Walk-up added by the team."}}
 function rebuild(){
+  applyPeople();
   for(let i=M.length-1;i>=0;i--)if(M[i].walk)M.splice(i,1);
   Object.entries(RAW.walkups).forEach(([id,w])=>{const m=walkToMeeting(id,w);if(m){keep0(m);M.push(m)}});
   M.forEach(m=>{const a=RAW.assignments[m.id];
-    if(a&&okTeam(a.team)){m.team="DSCX".split("").filter(p=>a.team.includes(p));m.lead=m.team.includes(a.lead)?a.lead:m.team[0]}else{m.team=[...m.team0];m.lead=m.lead0}
+    if(a&&okTeam(a.team)){m.team=cleanTeam(a.team);m.lead=m.team.includes(a.lead)?a.lead:m.team[0]}else{m.team=cleanTeam(m.team0);m.lead=m.team.includes(m.lead0)?m.lead0:m.team[0]}
     m.changed=m.team.join()!==m.team0.join()||m.lead!==m.lead0;
     const mv=a&&DORD.includes(a.day)&&/^\d\d:\d\d$/.test(a.start||"")&&/^\d\d:\d\d$/.test(a.end||"")&&tm(a.end)>tm(a.start);
     m.day=mv?a.day:m.day0;m.start=mv?a.start:m.start0;m.end=mv?a.end:m.end0;m.loc=a&&str(a.loc,80).trim()?str(a.loc,80):m.loc0;
@@ -772,7 +790,7 @@ function rebuild(){
 
 // ---------- clash detection ----------
 let clashes=[];
-function computeClashes(){clashes=[];for(const p of "DSCX"){for(const d of DORD){const l=sorted.filter(m=>live(m)&&m.day===d&&m.team.includes(p));for(let i=0;i<l.length;i++)for(let j=i+1;j<l.length;j++){if(tm(l[i].start)<tm(l[j].end)&&tm(l[j].start)<tm(l[i].end))clashes.push([p,d,l[i],l[j]])}}}}
+function computeClashes(){clashes=[];for(const p of PIDS()){for(const d of DORD){const l=sorted.filter(m=>live(m)&&m.day===d&&m.team.includes(p));for(let i=0;i<l.length;i++)for(let j=i+1;j<l.length;j++){if(tm(l[i].start)<tm(l[j].end)&&tm(l[j].start)<tm(l[i].end))clashes.push([p,d,l[i],l[j]])}}}}
 const overlapFor=(m,p,day=m.day,s=m.start,e=m.end)=>sorted.filter(o=>o!==m&&live(o)&&o.day===day&&o.team.includes(p)&&tm(o.start)<tm(e)&&tm(s)<tm(o.end));
 
 // ---------- KPIs ----------
@@ -812,24 +830,24 @@ function drawSlots(){
     const running=allM.filter(m=>tm(m.start)<tm(st)&&tm(st)<tm(m.end));
     const busyHere=allM.filter(m=>m.start===st);
     const busy=new Set([...busyHere,...running].flatMap(m=>m.team));
-    const free="DSCX".split("").filter(p=>!busy.has(p));
+    const free=PIDS().filter(p=>!busy.has(p));
     return `<div class="tslot"><div class="tlabel"><b>${st}</b>${here.length>1?`<span class="pill par">${here.length} in parallel</span>`:""}</div>
       <div class="tcards">${here.map(m=>`<button class="mcard ${m.status==="awaiting"?"aw":""} ${ME&&m.team.includes(ME)?"mine":""}" data-id="${m.id}">
           <div class="row sp"><b>${m.status==="done"?"✓ ":""}${esc(m.co)}</b>${fitHtml(m.fit)}</div>
           <span class="meta">${m.start}–${m.end} · ${esc(m.loc)}</span>${flagPills(m)}
-          <div class="row sp"><span class="who">${m.team.map(p=>`<span class="wchip ${m.lead===p?"ld":""}"><span class="av ${p}">${p==="X"?"Ch":p}</span>${short(p)}${m.lead===p?" ★":""}</span>`).join("")}</span>${m.status!=="confirmed"?stHtml(m.status):""}</div>
+          <div class="row sp"><span class="who">${m.team.map(p=>`<span class="wchip ${m.lead===p?"ld":""}">${avS(p)}${esc(short(p))}${m.lead===p?" ★":""}</span>`).join("")}</span>${m.status!=="confirmed"?stHtml(m.status):""}</div>
         </button>`).join("")}
         ${running.length?`<div class="cont">Still running: ${running.map(m=>`${esc(m.co)} (${m.team.map(short).join(", ")}, until ${m.end})`).join(" · ")}</div>`:""}
-        <div class="freebox">${free.length?`<span class="meta">Free at ${st}: ${free.map(short).join(", ")}</span><button type="button" class="btn" data-add="${st}" data-free="${free.join("")}">+ Parallel meeting</button>`:`<span class="meta">Whole team busy at ${st}</span>`}</div>
+        <div class="freebox">${free.length?`<span class="meta">Free at ${st}: ${free.map(short).join(", ")}</span><button type="button" class="btn" data-add="${st}" data-free="${free.join(",")}">+ Parallel meeting</button>`:`<span class="meta">Whole team busy at ${st}</span>`}</div>
       </div></div>`}).join("");
 }
-document.getElementById("slots").addEventListener("click",e=>{if(e.target.id==="mineOff")return setOnlyMe(false);const c=e.target.closest(".mcard");if(c)return openBrief(c.dataset.id);const a=e.target.closest("[data-add]");if(a)openWalkup({day:curDay,start:a.dataset.add,team:(a.dataset.free||"D").slice(0,1).split("")})});
+document.getElementById("slots").addEventListener("click",e=>{if(e.target.id==="mineOff")return setOnlyMe(false);const c=e.target.closest(".mcard");if(c)return openBrief(c.dataset.id);const a=e.target.closest("[data-add]");if(a)openWalkup({day:curDay,start:a.dataset.add,team:[(a.dataset.free||ME||PIDS()[0]).split(",")[0]]})});
 function drawGrid(){drawSlots();
   const g=document.getElementById("grid");const rows=(END-START)/STEP;
   g.style.gridTemplateRows=`auto repeat(${rows},${ROWH}px)`;
-  const order=["D","S","C","X"];const dayM=sorted.filter(m=>m.day===curDay&&live(m)&&tm(m.start)>=START&&tm(m.end)<=END);
+  const order=PIDS();g.style.gridTemplateColumns=`58px repeat(${order.length},minmax(130px,1fr))`;g.style.minWidth=(58+order.length*140)+"px";const dayM=sorted.filter(m=>m.day===curDay&&live(m)&&tm(m.start)>=START&&tm(m.end)<=END);
   let h=`<div class="gh" style="grid-column:1;grid-row:1"></div>`;
-  order.forEach((p,i)=>{const n=dayM.filter(m=>m.team.includes(p)).length;h+=`<div class="gh" style="grid-column:${i+2};grid-row:1"><span class="av ${p}">${p==="X"?"Ch":p}</span><div>${short(p)}<br><small>${n} meeting${n===1?"":"s"}</small></div></div>`});
+  order.forEach((p,i)=>{const n=dayM.filter(m=>m.team.includes(p)).length;h+=`<div class="gh" style="grid-column:${i+2};grid-row:1">${avS(p)}<div>${esc(short(p))}<br><small>${n} meeting${n===1?"":"s"}</small></div></div>`});
   for(let r=0;r<rows;r++){const t=START+r*STEP;h+=`<div class="tcell ${t%60?"half":""}" style="grid-column:1;grid-row:${r+2}">${t%30===0?fmt(t):""}</div>`;
     order.forEach((p,i)=>{const busy=dayM.some(m=>m.team.includes(p)&&tm(m.start)<=t&&t<tm(m.end));h+=`<div class="slot ${t%60?"q":""} ${busy?"":"free"}" data-p="${p}" data-t="${fmt(t)}" style="grid-column:${i+2};grid-row:${r+2}" ${busy?"":`title="Free: click to add a walk-up for ${short(p)} at ${fmt(t)}"`}></div>`})}
   const lane={};order.forEach(p=>{const l=dayM.filter(m=>m.team.includes(p));let groups=[];
@@ -837,9 +855,9 @@ function drawGrid(){drawSlots();
     groups.forEach(g=>{const ends=[];g.sort((a,b)=>tm(a.start)-tm(b.start)).forEach(m=>{let i=ends.findIndex(e=>e<=tm(m.start));if(i<0){i=ends.length;ends.push(0)}ends[i]=tm(m.end);lane[p+m.id]=[i,0]});
       const n=ends.length;g.forEach(m=>{lane[p+m.id][1]=n})})});
   dayM.forEach(m=>{const r0=(tm(m.start)-START)/STEP+2,r1=(tm(m.end)-START)/STEP+2;
-    m.team.forEach(p=>{const i=order.indexOf(p);const [li,ln]=lane[p+m.id]||[0,1];const ls=ln>1?`width:calc((100% - 8px) / ${ln} - 2px);margin-left:calc(4px + (100% - 8px) * ${li} / ${ln});justify-self:start;`:"";h+=`<button class="blk ${p} ${ln>1?"dbl":""} ${tm(m.end)-tm(m.start)<=15?"short":""} ${m.status==="awaiting"?"aw":""} ${m.status==="done"?"dn":""} ${m.lead===p?"lead":""}" style="grid-column:${i+2};grid-row:${r0}/${r1};${ls}" data-id="${m.id}" title="${esc(m.co)} · ${m.start}–${m.end}${ln>1?" · in parallel with another meeting":""}"><b>${m.status==="done"?"✓ ":""}${esc(m.co)}</b><span>${m.start}–${m.end} · ${esc(m.loc)}${m.changed?" · changed":""}${m.walk?" · walk-up":""}</span></button>`})});
+    m.team.forEach(p=>{const i=order.indexOf(p);const [li,ln]=lane[p+m.id]||[0,1];const ls=ln>1?`width:calc((100% - 8px) / ${ln} - 2px);margin-left:calc(4px + (100% - 8px) * ${li} / ${ln});justify-self:start;`:"";h+=`<button class="blk ${pc(p)} ${ln>1?"dbl":""} ${tm(m.end)-tm(m.start)<=15?"short":""} ${m.status==="awaiting"?"aw":""} ${m.status==="done"?"dn":""} ${m.lead===p?"lead":""}" style="grid-column:${i+2};grid-row:${r0}/${r1};${ls}" data-id="${m.id}" title="${esc(m.co)} · ${m.start}–${m.end}${ln>1?" · in parallel with another meeting":""}"><b>${m.status==="done"?"✓ ":""}${esc(m.co)}</b><span>${m.start}–${m.end} · ${esc(m.loc)}${m.changed?" · changed":""}${m.walk?" · walk-up":""}</span></button>`})});
   g.innerHTML=h;
-  if(ME){const ci=order.indexOf(ME)+2;g.querySelectorAll(`[style*="grid-column:${ci};"]`).forEach(el=>{if(el.classList.contains("gh")||el.classList.contains("slot"))el.classList.add("mine")})}
+  if(ME&&order.includes(ME)){const ci=order.indexOf(ME)+2;g.querySelectorAll(`[style*="grid-column:${ci};"]`).forEach(el=>{if(el.classList.contains("gh")||el.classList.contains("slot"))el.classList.add("mine")})}
   const note=document.getElementById("daynote");const canc=sorted.filter(m=>m.day===curDay&&!live(m)).map(m=>m.co);
   let t="";
   if(curDay==="Thu"&&!dayM.length)t="Thursday 5 Nov has no meetings booked. Click any free slot to add a follow-up or walk-up.";
@@ -861,12 +879,12 @@ function drawNow(){
   if(nowLive){if(liveDay){nd.value=liveDay;nt.value=n.time}else if(!nt.value){nd.value="Mon";nt.value="10:30"}}
   nl.innerHTML=nowLive&&liveDay?`<span class="pill st-confirmed">Live · Istanbul ${n.time}</span>`:`<span class="pill st-flexible">Preview</span> <span class="meta">${liveDay?"":"The conference has not started, so this shows a chosen time."}</span>`;
   const d=nd.value,t=tm(nt.value||"09:00");
-  document.getElementById("nowCards").innerHTML="DSCX".split("").map(p=>{
+  document.getElementById("nowCards").innerHTML=PIDS().map(p=>{
     const mine=sorted.filter(m=>live(m)&&m.day===d&&m.team.includes(p));
     const cur=mine.find(m=>tm(m.start)<=t&&t<tm(m.end));const nxt=mine.find(m=>tm(m.start)>t);
     const fut=mine.filter(m=>tm(m.start)>t).length;
     const blk=(m,label,extra)=>m?`<button class="nowm" data-id="${m.id}"><span class="lbl">${label}</span><b>${esc(m.co)}${m.lead===p?" ★":""}</b><span>${m.start}–${m.end} · ${esc(m.loc)}${extra||""}</span><span class="meta">With ${m.team.filter(x=>x!==p).map(short).join(", ")||"no one else"}</span>${flagPills(m)}</button>`:"";
-    return `<div class="pcol nowc ${p===ME?"mine":""}" style="order:${p===ME?0:1}"><div class="phead"><span class="av ${p}">${p==="X"?"Ch":p}</span><div><h3>${PEOPLE[p].name}</h3><p>${fut} more today</p></div></div>
+    return `<div class="pcol nowc ${p===ME?"mine":""}" style="order:${p===ME?0:1}"><div class="phead">${avS(p)}<div><h3>${esc(PEOPLE[p].name)}</h3><p>${fut} more today</p></div></div>
       <div class="nowb">${cur?blk(cur,"Now",` · ${tm(cur.end)-t} min left`):`<div class="free-now"><span class="lbl">Now</span><b>Free</b><button class="btn" data-walk="${p}">Add walk-up here</button></div>`}
       ${nxt?blk(nxt,"Next",` · in ${tm(nxt.start)-t} min`):`<div class="meta" style="padding:8px 0">Nothing else booked today.</div>`}</div></div>`}).join("");
 }
@@ -897,7 +915,7 @@ document.getElementById("cards").addEventListener("click",e=>{const c=e.target.c
 
 // ---------- team agendas ----------
 function drawTeam(){
-  document.getElementById("team").innerHTML="DSCX".split("").map(p=>{
+  drawMembers();document.getElementById("team").innerHTML=PIDS().map(p=>{
     const mine=sorted.filter(m=>live(m)&&m.team.includes(p));const leads=mine.filter(m=>m.lead===p).length;
     const mins=mine.reduce((s,m)=>s+tm(m.end)-tm(m.start),0);
     let body="";
@@ -907,7 +925,7 @@ function drawTeam(){
         body+=`<li data-id="${m.id}"><span class="t">${m.start}</span><span class="c"><b>${m.status==="done"?"✓ ":""}${esc(m.co)}${m.lead===p?" ★":""}</b><span>${esc(m.loc)} · until ${m.end}${m.status==="awaiting"?" · awaiting":""}${m.status0==="flexible"?" · booth":""}${m.walk?" · walk-up":""}</span></span></li>`;last=Math.max(last,tm(m.end))});
       if(tm("17:30")-last>=45)body+=`<li class="gap">${fmt(last)}–17:30 free</li>`;
       body+="</ul>"});
-    return `<div class="pcol"><div class="phead"><span class="av ${p}">${p==="X"?"Ch":p}</span><div><h3>${PEOPLE[p].name}</h3><p>${PEOPLE[p].role}</p></div></div>
+    return `<div class="pcol"><div class="phead">${avS(p)}<div><h3>${esc(PEOPLE[p].name)}</h3><p>${esc(PEOPLE[p].role)}</p></div></div>
       <div class="load"><span><b>${mine.length}</b> meetings</span>·<span><b>${leads}</b> leads</span>·<span><b>${(mins/60).toFixed(1)}</b> h</span></div>
       <div class="row" style="margin:8px 0"><button type="button" class="btn" data-cal="${p}">Add to calendar</button><button type="button" class="btn" data-share="${p}">Share day plan</button></div>${body}</div>`}).join("");
 }
@@ -955,18 +973,18 @@ document.getElementById("nFlags").textContent=FLAGS.length;}
 // ---------- drawer ----------
 const drawer=document.getElementById("drawer"),scrim=document.getElementById("scrim");let lastFocus=null;
 const shareNote=()=>STORE.shared?"Saved for the whole team.":"Saved on this device; syncs when online.";
-function teamPicker(team,lead){return `<div class="pick" id="pick">${"DSCX".split("").map(p=>`<button type="button" class="pk" data-p="${p}" aria-pressed="${team.includes(p)}"><span class="av ${p}">${p==="X"?"Ch":p}</span>${short(p)}</button>`).join("")}</div>
+function teamPicker(team,lead){return `<div class="pick" id="pick">${pickBtns(team)}</div>
   <div class="row" style="margin-top:8px"><label for="leadSel" class="meta">Leads the meeting</label><select id="leadSel"></select></div><div id="pickWarn"></div>`}
 function wirePicker(initTeam,initLead,slot,onChange){
   let sel=[...initTeam],lead=initLead;
   const pick=document.getElementById("pick"),ls=document.getElementById("leadSel"),warn=document.getElementById("pickWarn");
   function sync(){pick.querySelectorAll(".pk").forEach(b=>b.setAttribute("aria-pressed",sel.includes(b.dataset.p)));
     if(!sel.includes(lead))lead=sel[0]||"";
-    ls.innerHTML=sel.map(p=>`<option value="${p}" ${p===lead?"selected":""}>${PEOPLE[p].name}</option>`).join("");ls.disabled=!sel.length;
+    ls.innerHTML=sel.map(p=>`<option value="${p}" ${p===lead?"selected":""}>${esc(PEOPLE[p].name)}</option>`).join("");ls.disabled=!sel.length;
     const s=slot();const w=s?sel.flatMap(p=>overlapFor(s.m,p,s.day,s.start,s.end).map(o=>`${short(p)} is also at ${o.co} (${o.start}–${o.end})`)):[];
     warn.innerHTML=(sel.length?"":`<div class="alert v" style="margin-top:8px">Pick at least one person.</div>`)+w.map(x=>`<div class="alert" style="margin-top:8px">Two meetings at once (allowed): ${esc(x)}</div>`).join("");
     onChange(sel,lead)}
-  pick.addEventListener("click",e=>{const b=e.target.closest(".pk");if(!b)return;const p=b.dataset.p;sel=sel.includes(p)?sel.filter(x=>x!==p):"DSCX".split("").filter(x=>sel.includes(x)||x===p);sync()});
+  pick.addEventListener("click",async e=>{if(e.target.closest("[data-newp]")){const p=await promptMember();if(p){sel=ALLP().filter(x=>sel.includes(x)||x===p);pick.innerHTML=pickBtns(sel);sync()}return}const b=e.target.closest(".pk");if(!b)return;const p=b.dataset.p;sel=sel.includes(p)?sel.filter(x=>x!==p):ALLP().filter(x=>sel.includes(x)||x===p);sync()});
   ls.addEventListener("change",()=>{lead=ls.value;onChange(sel,lead)});
   sync();return {get:()=>({team:sel,lead}),sync}}
 function openDrawer(html){lastFocus=lastFocus||document.activeElement;if(drawer.hidden&&!(history.state&&history.state.d))history.pushState({d:1},"");drawer.innerHTML=html;drawer.hidden=false;scrim.hidden=false;document.getElementById("dClose").focus();document.getElementById("dClose").onclick=closeBrief}
@@ -986,7 +1004,7 @@ function openBrief(id){const m=M.find(x=>x.id===id);if(!m)return;const n=m.note|
     <details class="editor" id="edNotes" ${m.note||m.status==="done"?"open":""}><summary>Status &amp; meeting notes</summary>
       <div class="form">
         <div class="fld"><label for="nSt">Status</label><select id="nSt">${["confirmed","awaiting","flexible","done","noshow","cancelled"].map(s=>`<option value="${s}" ${s===m.status?"selected":""}>${ST[s]}</option>`).join("")}</select></div>
-        <div class="fld"><label for="nOwner">Follow-up owner</label><select id="nOwner">${"DSCX".split("").map(p=>`<option value="${p}" ${(n.owner||m.lead)===p?"selected":""}>${PEOPLE[p].name}</option>`).join("")}</select></div>
+        <div class="fld"><label for="nOwner">Follow-up owner</label><select id="nOwner">${[...new Set([...PIDS(),n.owner||m.lead])].filter(p=>PEOPLE[p]).map(p=>`<option value="${p}" ${(n.owner||m.lead)===p?"selected":""}>${esc(PEOPLE[p].name)}</option>`).join("")}</select></div>
         <div class="fld w"><label for="nEmail">Contact email</label><input id="nEmail" type="email" inputmode="email" autocomplete="off" maxlength="160" value="${esc(n.email)}" placeholder="From their business card"></div>
         <div class="fld w"><label for="nNeeds">What they need</label><textarea id="nNeeds" rows="2" maxlength="600">${esc(n.needs)}</textarea></div>
         <div class="fld"><label for="nVol">Volumes</label><input id="nVol" maxlength="160" value="${esc(n.vol)}" placeholder="e.g. 40 cases/summer in Greece"></div>
@@ -1013,7 +1031,7 @@ function openBrief(id){const m=M.find(x=>x.id===id);if(!m)return;const n=m.note|
       <div class="row" style="margin-top:10px"><button type="button" class="btn pri" id="saveMove">Save new time</button><span class="meta" id="moveMsg" role="status"></span></div>
       <p class="meta" style="margin-top:6px">Original: ${DAYS[m.day0]} ${m.start0}–${m.end0}, ${esc(m.loc0)}. ${shareNote()}</p>
     </details>
-    <details class="editor" ${m.changed?"open":""}><summary>Change who attends</summary>
+    <details class="editor" ${m.changed?"open":""}><summary>Add or remove HWA members</summary>
       ${teamPicker(m.team,m.lead)}
       <div class="row" style="margin-top:10px"><button type="button" class="btn pri" id="saveTeam">Save change</button><button type="button" class="btn" id="resetTeam" ${m.changed||m.moved?"":"hidden"}>Back to original plan</button><span class="meta" id="saveMsg" role="status"></span></div>
       <p class="meta" style="margin-top:6px">Original plan: ${m.team0.map(short).join(" + ")}, lead ${short(m.lead0)}. ${shareNote()}</p>
@@ -1045,7 +1063,7 @@ function openBrief(id){const m=M.find(x=>x.id===id);if(!m)return;const n=m.note|
 
 function openWalkup(pre,wid){pre=pre||{};
   const day=DORD.includes(pre.day)?pre.day:"Mon",start=/^\d\d:\d\d$/.test(pre.start||"")?pre.start:"13:00",dur=[15,30,45,60].includes(+pre.dur)?+pre.dur:30;
-  const team=okTeam(pre.team)?pre.team:["D"],lead=team.includes(pre.lead)?pre.lead:team[0];
+  const team=okTeam(pre.team)?pre.team:[PIDS()[0]],lead=team.includes(pre.lead)?pre.lead:team[0];
   openDrawer(`<div class="dhead"><div><h3 id="dTitle">${wid?"Edit walk-up":"Add walk-up meeting"}</h3><p>${STORE.shared?"Everyone on the team will see it.":"Saved in this browser only."}</p></div><button class="xbtn" id="dClose" aria-label="Close">×</button></div>
   <div class="dbody"><form id="wkForm" class="form">
     <div class="fld w"><label for="wkCo">Company</label><input id="wkCo" required maxlength="120" value="${esc(pre.co)}" placeholder="e.g. Allianz Partners"></div>
@@ -1091,14 +1109,14 @@ const saveAssign=(m,patch)=>STORE.save("assignments",m.id,{...(RAW.assignments[m
 function flagPills(m){return (m.late?`<span class="pill late">⏱ ${short(m.late.p)} ${+m.late.min} min late</span>`:"")+(m.moved?`<span class="pill moved">Moved</span>`:"")}
 const isVenue=l=>!l||/booth|reg desk|tabletop|stand|lounge|tbc|their location|venue|swiss/i.test(l);
 const mapUrl=l=>"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(isVenue(l)?"Swissotel The Bosphorus Istanbul":l+", Istanbul");
-const freeFor=m=>"DSCX".split("").filter(p=>!m.team.includes(p)&&!overlapFor(m,p).length);
+const freeFor=m=>PIDS().filter(p=>!m.team.includes(p)&&!overlapFor(m,p).length);
 function meActions(m){
   if(!ME)return `<div class="meact"><h5>On this meeting?</h5><p class="meta" style="margin:0">Pick your name in “I am” at the top to tell the team you are running late or hand this meeting to a free colleague.</p></div>`;
   if(!m.team.includes(ME)||!live(m))return "";
   const fr=freeFor(m);const myLate=m.late&&m.late.p===ME;
   return `<div class="meact"><h5>You are on this meeting</h5>
     <div class="row"><span class="meta">Running late:</span>${[5,10,15].map(x=>`<button type="button" class="btn ${myLate&&+m.late.min===x?"on":""}" data-late="${x}">${x===15?"15+":x} min</button>`).join("")}${myLate?'<button type="button" class="btn" data-late="0">On time now</button>':""}</div>
-    <div class="row"><span class="meta">Hand over to:</span>${fr.length?fr.map(p=>`<button type="button" class="btn" data-cover="${p}"><span class="av ${p}">${p==="X"?"Ch":p}</span> ${short(p)}</button>`).join(""):'<span class="meta">No one else is free at this time.</span>'}</div>
+    <div class="row"><span class="meta">Hand over to:</span>${fr.length?fr.map(p=>`<button type="button" class="btn" data-cover="${p}">${avS(p)} ${esc(short(p))}</button>`).join(""):'<span class="meta">No one else is free at this time.</span>'}</div>
     <span class="meta" id="meMsg" role="status"></span></div>`}
 function shrink(file,max=1100,q=.65){return new Promise((res,rej)=>{const u=URL.createObjectURL(file);const img=new Image();
   img.onload=()=>{const k=Math.min(1,max/Math.max(img.width,img.height));const c=document.createElement("canvas");c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);c.getContext("2d").drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(u);res(c.toDataURL("image/jpeg",q))};
@@ -1113,7 +1131,7 @@ function wireBrief(m){const g=i=>document.getElementById(i);
     const l=e.target.closest("[data-late]");if(l){const min=+l.dataset.late;if(await saveNote(m.id,{late:min?{p:ME,min,at:Date.now()}:null}))reopen(null,"meMsg",min?`The team can see you are ${min} min late.`:"Cleared.");return}
     const c=e.target.closest("[data-cover]");if(c){const p=c.dataset.cover;
       if(c.dataset.armed!=="1"){c.dataset.armed="1";c.lastChild.textContent=` Tap again: give to ${short(p)}`;return}
-      const team="DSCX".split("").filter(x=>(m.team.includes(x)&&x!==ME)||x===p);const lead=m.lead===ME?p:m.lead;
+      const team=ALLP().filter(x=>(m.team.includes(x)&&x!==ME)||x===p);const lead=m.lead===ME?p:m.lead;
       if(await saveAssign(m,{team,lead})){openBrief(m.id);shareText("Can you cover a meeting?",`Hi ${short(p)}, can you cover ${m.co} on ${DAYS[m.day]} ${m.start}–${m.end} at ${m.loc}? I've moved it to you in the ITIC planner.\n${appLink()}`)}}};
   g("calOne").onclick=()=>downloadIcs(icsFor([m]),`ITIC-${m.co.replace(/[^\w]+/g,"-").slice(0,40)}.ics`);
   g("shareOne").onclick=()=>shareText(m.co,briefText(m));
@@ -1215,7 +1233,7 @@ const mineTog=document.getElementById("mineTog");
 function setOnlyMe(v){ONLYME=!!v;try{localStorage.setItem("itic-onlyme",ONLYME?"1":"0")}catch(e){}mineTog.setAttribute("aria-pressed",ONLYME);drawGrid()}
 mineTog.addEventListener("click",()=>setOnlyMe(!ONLYME));
 function drawMyDay(){const el=document.getElementById("myday");mineTog.hidden=!ME;mineTog.setAttribute("aria-pressed",ONLYME&&!!ME);
-  if(!ME){el.innerHTML=`<div class="mdc"><span class="lbl">Who are you?</span><p>Tap your name to see your next meeting first, get calendar reminders, and tell the team if you are running late.</p><div class="who">${"DSCX".split("").map(p=>`<button type="button" class="btn" data-me="${p}"><span class="av ${p}">${p==="X"?"Ch":p}</span> ${short(p)}</button>`).join("")}</div></div>`;return}
+  if(!ME){el.innerHTML=`<div class="mdc"><span class="lbl">Who are you?</span><p>Tap your name to see your next meeting first, get calendar reminders, and tell the team if you are running late.</p><div class="who">${PIDS().map(p=>`<button type="button" class="btn" data-me="${p}">${avS(p)} ${esc(short(p))}</button>`).join("")}</div></div>`;return}
   const n=istNow(),liveDay=CONF[n.date],t=tm(n.time);const mine=sorted.filter(m=>live(m)&&m.team.includes(ME));
   let m=null,lbl="",extra="";
   if(liveDay){m=mine.find(x=>x.day===liveDay&&tm(x.start)<=t&&t<tm(x.end));if(m){lbl="Now";extra=`${tm(m.end)-t} min left`}
@@ -1233,10 +1251,41 @@ setInterval(()=>{if(!document.getElementById("v-schedule").hidden)drawMyDay()},3
 // ---------- quick walk-up button ----------
 document.getElementById("fab").addEventListener("click",()=>{const n=istNow(),d=CONF[n.date];
   const st=d?fmt(Math.min(tm("18:00"),Math.max(tm("08:00"),Math.ceil(tm(n.time)/15)*15))):undefined;
-  openWalkup({day:d||curDay,start:st,team:[ME||"D"]})});
+  openWalkup({day:d||curDay,start:st,team:[PEOPLE[ME]&&!PEOPLE[ME].gone?ME:PIDS()[0]]})});
+// ---------- HWA team members (shared; stored as assignments/_p_<id>) ----------
+const pickBtns=team=>PIDS().concat(team.filter(p=>PEOPLE[p]&&PEOPLE[p].gone)).map(p=>`<button type="button" class="pk" data-p="${p}" aria-pressed="${team.includes(p)}">${avS(p)}${esc(short(p))}</button>`).join("")+`<button type="button" class="pk new" data-newp>+ New member</button>`;
+async function addMember(name,role){name=String(name||"").trim().slice(0,60);if(!name)return null;
+  const ex=ALLP().find(p=>PEOPLE[p].name.toLowerCase()===name.toLowerCase());
+  if(ex){if(PEOPLE[ex].gone)await STORE.save("assignments","_p_"+ex,BASEP[ex]?{gone:false,at:Date.now()}:{name:PEOPLE[ex].name,role:PEOPLE[ex].role,gone:false,at:PEOPLE[ex].at||Date.now()});return ex}
+  const id="p"+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+  return await STORE.save("assignments","_p_"+id,{name,role:String(role||"").trim().slice(0,80)||"HWA team",gone:false,at:Date.now()})?id:null}
+async function promptMember(){const name=prompt("Name of the HWA team member to add:");if(!name||!name.trim())return null;const role=prompt("Their role (optional):","")||"";return addMember(name,role)}
+function soleMeetings(p){return sorted.filter(m=>live(m)&&m.team.length===1&&m.team[0]===p)}
+function drawMembers(){const el=document.getElementById("members");const act=PIDS(),gone=ALLP().filter(p=>PEOPLE[p].gone);
+  el.innerHTML=`<h3>HWA team members</h3><p class="meta" style="margin:0">Add anyone from HWA, then add them to meetings from “Add or remove HWA members”. Changes are shared with the whole team.</p>
+    <div class="mlist">${act.map(p=>`<span class="mchip">${avS(p)}<span><b>${esc(short(p))}</b> <small>${esc(PEOPLE[p].role)}</small></span><button type="button" class="x" data-del="${p}" aria-label="Remove ${esc(short(p))}" title="Remove from the team">×</button></span>`).join("")}</div>
+    <form class="addm" id="addmForm"><input id="amName" maxlength="60" placeholder="Name, e.g. Maria Papadopoulou" aria-label="New member name"><input id="amRole" maxlength="80" placeholder="Role (optional)" aria-label="New member role"><button type="submit" class="btn pri">+ Add member</button></form>
+    <span class="meta" id="amMsg" role="status"></span>
+    ${gone.length?`<div class="mlist"><span class="meta">Removed:</span>${gone.map(p=>`<span class="mchip gone">${avS(p)}<b>${esc(short(p))}</b><button type="button" class="btn" data-restore="${p}">Restore</button></span>`).join("")}</div>`:""}`}
+document.getElementById("members").addEventListener("submit",async e=>{e.preventDefault();const n=document.getElementById("amName").value;if(!n.trim()){document.getElementById("amMsg").textContent="Type a name first.";return}
+  const id=await addMember(n,document.getElementById("amRole").value);const msg=document.getElementById("amMsg");if(msg)msg.textContent=id?`${short(id)} added. Open any meeting → “Add or remove HWA members” to add them.`:"Could not save."});
+document.getElementById("members").addEventListener("click",async e=>{const msg=()=>document.getElementById("amMsg");
+  const r=e.target.closest("[data-restore]");if(r){const p=r.dataset.restore;await STORE.save("assignments","_p_"+p,BASEP[p]?{gone:false,at:Date.now()}:{name:PEOPLE[p].name,role:PEOPLE[p].role,gone:false,at:PEOPLE[p].at||Date.now()});return}
+  const d=e.target.closest("[data-del]");if(!d)return;const p=d.dataset.del;
+  if(PIDS().length<=1){msg().textContent="The team needs at least one person.";return}
+  const sole=soleMeetings(p);if(sole.length){msg().textContent=`${short(p)} is the only person at ${sole.map(m=>`${m.co} (${DAYS[m.day].slice(0,3)} ${m.start})`).join(", ")}. Give those meetings to someone else first.`;return}
+  if(d.dataset.armed!=="1"){d.dataset.armed="1";d.textContent="✓";d.title="Tap again to remove";const n=sorted.filter(m=>live(m)&&m.team.includes(p)).length;msg().textContent=`Tap ✓ again to remove ${short(p)}${n?` and take them off ${n} meeting${n===1?"":"s"}`:""}. You can restore them later.`;return}
+  await STORE.save("assignments","_p_"+p,BASEP[p]?{gone:true,at:Date.now()}:{name:PEOPLE[p].name,role:PEOPLE[p].role,gone:true,at:PEOPLE[p].at||Date.now()});
+  if(ME===p){ME="";try{localStorage.setItem("itic-me","")}catch(err){}}});
+function fillPeople(){const ms=document.getElementById("meSel"),fw=document.getElementById("fwho");if(!ms||!fw)return;
+  const ids=PIDS();if(typeof ME!=="undefined"&&ME&&PEOPLE[ME]&&!ids.includes(ME))ids.push(ME);
+  const o=ids.map(p=>`<option value="${p}">${esc(short(p))}</option>`).join("");
+  const mv=typeof ME!=="undefined"?ME:ms.value,fv=fw.value;
+  ms.innerHTML=`<option value="">Choose…</option>`+o;ms.value=PEOPLE[mv]?mv:"";fw.innerHTML=`<option value="">Whole team</option>`+o;fw.value=PEOPLE[fv]?fv:"";
+  document.getElementById("legend").innerHTML=PIDS().map(p=>`<span>${avS(p)} ${esc(short(p))} · ${esc(PEOPLE[p].role.split(/[·&]/)[0].trim())}</span>`).join("")+`<span><i style="background:var(--surface-2);border:1px solid var(--line)"></i>Hatched = free</span>`}
 // ---------- who am I (per device) ----------
 let ME="";try{ME=localStorage.getItem("itic-me")||""}catch(e){}
-const meSel=document.getElementById("meSel");meSel.value="DSCX".includes(ME)&&ME?ME:"";
+const meSel=document.getElementById("meSel");fillPeople();meSel.value=PEOPLE[ME]?ME:"";
 meSel.addEventListener("change",()=>{ME=meSel.value;try{localStorage.setItem("itic-me",ME)}catch(e){}F.who.value=ME;fCount();renderAll()});
 if(ME)F.who.value=ME;fCount();
 // ---------- Firebase (healthwatch-tpa) ----------
@@ -1250,7 +1299,7 @@ async function fbAdapter(){
       collection:c=>({onSnapshot:(next,err)=>f.collection(FB_PREFIX+c).onSnapshot(sn=>{setSync(!sn.metadata.fromCache,sn.metadata.fromCache?"Offline: showing saved copy, will sync when online":"Live: changes sync to the whole team");next({docs:sn.docs.map(d=>({id:d.id,data:()=>d.data()}))})},e=>{setSync(false,"Sync error: "+(e&&e.code||"unknown"));err&&err(e)})})}}
   catch(e){return null}}
 // ---------- boot ----------
-function renderAll(){computeClashes();renderKpis();renderFlags();drawMyDay();drawGrid();drawCards();drawTeam();drawPipe();if(!document.getElementById("v-now").hidden)drawNow()}
+function renderAll(){fillPeople();computeClashes();renderKpis();renderFlags();drawMyDay();drawGrid();drawCards();drawTeam();drawPipe();if(!document.getElementById("v-now").hidden)drawNow()}
 setMode(MODE);loadLocal();rebuild();show(location.hash.slice(1));
 const syncEl=document.getElementById("sync");const setSync=(on,t)=>{syncEl.classList.toggle("on",on);syncEl.title=t;syncEl.querySelector(".lf").textContent=t;syncEl.querySelector(".ls").textContent=t.split(":")[0]};
 (async()=>{const db=await fbAdapter();if(!db){setSync(false,"Offline: changes stay on this device until the connection returns");return}
