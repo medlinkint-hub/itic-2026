@@ -471,7 +471,7 @@ footer{color:var(--muted);font-size:14.5px;padding-block:0 30px}
 
 </div>
 </main>
-<footer><div class="wrap">Source: ITIC_Meeting_Schedule_2026.xlsx (29 Oct 2026) merged with the HWA ITIC master schedule. HealthWatch Assistance S.A. is approved by Lloyd's as a Delegated Claims Administrator (DCA). Company profiles marked "Verify" could not be confirmed from public sources.</div></footer>
+<footer><div class="wrap">Source: ITIC_Meeting_Schedule_2026_ALL_MEETINGS.xlsx (30 Oct 2026) merged with the HWA ITIC master schedule. HealthWatch Assistance S.A. is approved by Lloyd's as a Delegated Claims Administrator (DCA). Company profiles marked "Verify" could not be confirmed from public sources.</div></footer>
 
 <button type="button" class="fab" id="fab" aria-label="Add walk-up meeting" title="Add walk-up meeting">+</button>
 <div class="scrim" id="scrim" hidden></div>
@@ -678,17 +678,17 @@ const M=[
  does:"Assistance provider across Asia: case management, GOPs, cost containment, evacuation, repatriation and hospital network for insurers, TPAs and corporates.",
  needs:["Partner for Indian and Asian travellers in Greece and Cyprus"],
  propose:["Reciprocal: HWA covers Greece/Cyprus/Balkans/Egypt, ATMS covers South Asia for HWA"],
- talk:["Doctor-to-doctor case flow"],obj:[],goal:"Reciprocal agreement and rate exchange.",why:"Sami medical; Christina on rates.",flag:"Sheet says 'already scheduled'. Sami must leave at 15:00 for Mutuaide."},
-{id:"t14",day:"Tue",start:"15:00",end:"15:30",loc:"TBC",co:"Mutuaide Assistance",contact:"Frederic Senente",type:"Assistance company",country:"France",status:"awaiting",fit:5,team:["D","S"],lead:"D",
- does:"French assistance company in the Groupama group.",
- needs:["Greece/Cyprus partner for French travellers"],
- propose:["Full case management, bill review, repatriation coordination"],
- talk:["Sami speaks French: doctor-to-doctor","Lloyd's DCA"],
- obj:[["We have a partner.","Overflow and cost comparison."]],
- goal:"Rate sheet and pilot.",why:"Fit 5: CEO plus Sami (French)."},
+ talk:["Doctor-to-doctor case flow"],obj:[],goal:"Reciprocal agreement and rate exchange.",why:"Sami medical; Christina on rates.",flag:"Sheet says 'already scheduled'. Sami must leave at 15:00 for HanseMerkur."},
+{id:"t19",day:"Tue",start:"15:00",end:"15:30",loc:"TBC",co:"HanseMerkur",contact:"Marko Bottger",type:"Health / travel insurer",country:"Germany (Hamburg)",status:"confirmed",fit:4,team:["D","S"],lead:"D",verify:true,
+ does:"German insurance group based in Hamburg. HanseMerkur Krankenversicherung AG is its private health insurer; the group also sells travel health insurance.",
+ needs:["Medical assistance and cost control for German insured who fall ill in Greece and Cyprus","Fast GOPs and bill review at private tourist clinics","Fit-to-fly and repatriation readiness"],
+ propose:["Case management in Greece, Cyprus, the Balkans and Egypt: GOPs, bill review, daily English medical updates, fit-to-fly","Price comparison on a sample of their recent Greek cases","Preferred local partner for the assistance company that handles their cases"],
+ talk:["German travellers are one of Greece's largest tourist groups","Island tourist clinics are where costs leak; our bill review stops that","Approved by Lloyd's as a DCA"],
+ obj:[["We work through an assistance company.","Then HWA is the local partner they use in Greece; we can be named as preferred provider."],["Language?","Medical reports in English; German correspondence can be arranged."]],
+ goal:"Find out who handles their Greek cases today; rate sheet and a pilot for summer 2027.",why:"Insurer (payer): CEO leads; Sami for medical case flow.",flag:"New on the 30 Oct sheet, replacing Mutuaide Assistance. Confirm Marko Bottger's role before the meeting."},
 {id:"t15",day:"Tue",start:"15:00",end:"15:30",loc:"TBC",co:"Meditrans BV",contact:"Pieter Gerkens",type:"Medical transport",country:"Netherlands",status:"awaiting",fit:3,team:["C","X"],lead:"C",
  does:"Dutch air and ground medical transport company.",needs:["Ground partner in Greece"],
- propose:["Ground ambulance and hospital liaison in Greece/Cyprus"],talk:[],obj:[],goal:"Ground partner listing.",why:"Clashes with Mutuaide: Clara and Christina.",flag:"Ask to move to 15:30 so Sami (air ambulance) can lead."},
+ propose:["Ground ambulance and hospital liaison in Greece/Cyprus"],talk:[],obj:[],goal:"Ground partner listing.",why:"Clashes with HanseMerkur: Clara and Christina.",flag:"Ask to move to 15:30 so Sami (air ambulance) can lead."},
 {id:"t16",day:"Tue",start:"16:00",end:"16:30",loc:"Reg Desk",co:"IMG (International Medical Group)",contact:"Tessa van der Laan",type:"IPMI & travel insurer",country:"USA / Europe",status:"confirmed",fit:5,team:["D","S","X"],lead:"D",
  does:"International health and travel insurance group serving expatriates and travellers.",
  needs:["Greece/Cyprus partner for claims and assistance","Cost containment"],
@@ -957,9 +957,10 @@ const aw=M.filter(m=>m.status==="awaiting");
 const FLAGS=[
  ...clashes.map(([p,d,a,b])=>({lvl:"hi",t:`Double-booked: ${PEOPLE[p].name}, ${DAYS[d]}`,p:`${a.co} (${a.start}–${a.end}) and ${b.co} (${b.start}–${b.end}) at the same time. Allowed: check this is intended, e.g. a joint meeting at one table or dropping into the second one.`})),
  ...(aw.length?[{lvl:"hi",t:`${aw.length} meeting${aw.length===1?"":"s"} awaiting confirmation`,p:aw.map(m=>`${m.co} (${DAYS[m.day]} ${m.start}, Fit ${m.fit||"?"})`).join("; ")+". Chase before Monday, then set the status to Confirmed in the meeting."}]:[]),
- {lvl:"hi",t:"Existing clients missing from the new sheet",p:"MAWDY (Mapfre, Zigor Diez Gamboa), Healix International (partner review) and Medifly are not on the 29 Oct sheet. Confirm whether these meetings were dropped or are just not entered."},
+ {lvl:"hi",t:"Existing clients missing from the new sheet",p:"MAWDY (Mapfre, Zigor Diez Gamboa), Healix International (partner review) and Medifly are not on the 30 Oct sheet. Confirm whether these meetings were dropped or are just not entered."},
+ {lvl:"info",t:"30 Oct sheet: Mutuaide out, HanseMerkur in",p:"Mutuaide Assistance (Frederic Senente, Tue 15:00) is no longer on the sheet. HanseMerkur (Marko Bottger) now has Tue 15:00 and is confirmed. Meditrans at the same time and Crisis24 (Wed 12:30) are still awaiting confirmation."},
  {lvl:"",t:"Cedric Henriot booked twice",p:"Mon 15:30 (with Patrik Karlsson) and Wed 11:30 (Scandic Services). He is the founder of Scandic Services / MedevacX, Cyprus. Merge into Monday and the CEO and Clara get Wed 11:30 back."},
- {lvl:"",t:"Parallel meetings at different locations",p:"Mon 15:00 Unicair (Booth 37) and Hearts First (Tabletop M); Tue 10:30 CEGA (Reg Desk) and Hospiten (Booth 13); Tue 15:00 Mutuaide and Meditrans; Tue 16:00 IMG and Anher; Wed 11:30 Scandic and Medresq. The team splits as shown in the grid."},
+ {lvl:"",t:"Parallel meetings at different locations",p:"Mon 15:00 Unicair (Booth 37) and Hearts First (Tabletop M); Tue 10:30 CEGA (Reg Desk) and Hospiten (Booth 13); Tue 15:00 HanseMerkur and Meditrans; Tue 16:00 IMG and Anher; Wed 11:30 Scandic and Medresq. The team splits as shown in the grid."},
  {lvl:"",t:"Air ambulance requests not reflected",p:"Of the 27 air ambulance requests sent 16 Oct, only Unicair, Tyrol, Nordic AirAmbulance and Meditrans appear. Sami has free windows on Mon 09:00–10:30, Tue 09:00–10:30 and 13:30–14:45, Wed from 13:00 and all of Thursday for any late replies."},
  {lvl:"",t:`Christina carries ${M.filter(m=>live(m)&&m.team.includes("X")).length} meetings`,p:"She covers the low-value hospital meetings so Clara and the CEO can take payers. If Christina does not travel, move Samitivej, Clinica San Fernando, Trails of Indochina and MedPark to Clara, and drop the two lowest-fit ones if Clara is double-booked."},
  {lvl:"",t:`Clara's Tuesday is dense (${M.filter(m=>live(m)&&m.day==="Tue"&&m.team.includes("C")).length} meetings)`,p:"Several are back-to-back between Booth 13, an unknown HealthMetrics location and the Reg Desk. Ask HealthMetrics and Medicana for their locations."},
