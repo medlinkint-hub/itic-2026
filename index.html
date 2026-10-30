@@ -997,7 +997,7 @@ function openBrief(id){const m=M.find(x=>x.id===id);if(!m)return;const n=m.note|
     <div class="qbar"><button type="button" class="btn ${m.status==="done"?"ok":""}" data-q="done">✓ Done</button><button type="button" class="btn ${m.status==="noshow"?"on":""}" data-q="noshow">No-show</button><button type="button" class="btn" data-q="move">Reschedule</button></div>
     ${meActions(m)}
     <dl class="facts"><dt>Where</dt><dd>${esc(m.loc)} · <a href="${mapUrl(m.loc)}" target="_blank" rel="noopener">${isVenue(m.loc)?"Venue map":"Map"}</a></dd><dt>Contact</dt><dd>${esc(m.contact)}${n.email?` · <a href="mailto:${esc(n.email)}">${esc(n.email)}</a>`:""}</dd><dt>Type</dt><dd>${esc(m.type)}</dd><dt>Country</dt><dd>${esc(m.country)}</dd><dt>Fit</dt><dd>${fitHtml(m.fit)} ${m.fit?m.fit+"/5":"to qualify"}</dd>
-      <dt>HWA team</dt><dd>${avHtml(m.team)} ${m.team.map(p=>short(p)+(m.lead===p?" (lead)":"")).join(", ")}</dd></dl>
+      <dt>HWA team</dt><dd>${avHtml(m.team)} ${m.team.map(p=>short(p)+(m.lead===p?" (lead)":"")).join(", ")}<br><button type="button" class="btn" id="quickTeam" style="margin-top:6px">+ Add / remove people</button></dd></dl>
     <div class="row"><button type="button" class="btn" id="calOne">Add to calendar</button><button type="button" class="btn" id="shareOne">Share brief</button></div>
     ${m.status==="done"||m.status==="noshow"?`<div class="editor"><div class="row sp"><b>Follow-up email</b>${n.fuSent?stHtml("done").replace("Done","Sent"):""}</div><p class="meta" style="margin:4px 0 8px">Drafted from your notes. Edit it, then send from your email app or Gmail.</p><button type="button" class="btn pri" id="draftBtn">Draft follow-up email</button><div id="draftBox"></div></div>`:""}
 
@@ -1031,7 +1031,7 @@ function openBrief(id){const m=M.find(x=>x.id===id);if(!m)return;const n=m.note|
       <div class="row" style="margin-top:10px"><button type="button" class="btn pri" id="saveMove">Save new time</button><span class="meta" id="moveMsg" role="status"></span></div>
       <p class="meta" style="margin-top:6px">Original: ${DAYS[m.day0]} ${m.start0}–${m.end0}, ${esc(m.loc0)}. ${shareNote()}</p>
     </details>
-    <details class="editor" ${m.changed?"open":""}><summary>Add or remove HWA members</summary>
+    <details class="editor" id="edTeam" ${m.changed?"open":""}><summary>Add or remove HWA members</summary>
       ${teamPicker(m.team,m.lead)}
       <div class="row" style="margin-top:10px"><button type="button" class="btn pri" id="saveTeam">Save change</button><button type="button" class="btn" id="resetTeam" ${m.changed||m.moved?"":"hidden"}>Back to original plan</button><span class="meta" id="saveMsg" role="status"></span></div>
       <p class="meta" style="margin-top:6px">Original plan: ${m.team0.map(short).join(" + ")}, lead ${short(m.lead0)}. ${shareNote()}</p>
@@ -1133,6 +1133,7 @@ function wireBrief(m){const g=i=>document.getElementById(i);
       if(c.dataset.armed!=="1"){c.dataset.armed="1";c.lastChild.textContent=` Tap again: give to ${short(p)}`;return}
       const team=ALLP().filter(x=>(m.team.includes(x)&&x!==ME)||x===p);const lead=m.lead===ME?p:m.lead;
       if(await saveAssign(m,{team,lead})){openBrief(m.id);shareText("Can you cover a meeting?",`Hi ${short(p)}, can you cover ${m.co} on ${DAYS[m.day]} ${m.start}–${m.end} at ${m.loc}? I've moved it to you in the ITIC planner.\n${appLink()}`)}}};
+  g("quickTeam").onclick=()=>{const d=g("edTeam");d.open=true;d.scrollIntoView({block:"start",behavior:"smooth"})};
   g("calOne").onclick=()=>downloadIcs(icsFor([m]),`ITIC-${m.co.replace(/[^\w]+/g,"-").slice(0,40)}.ics`);
   g("shareOne").onclick=()=>shareText(m.co,briefText(m));
   const db=g("draftBtn");if(db)db.onclick=()=>showDraft(m);
