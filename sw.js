@@ -1,6 +1,6 @@
 // Offline support for the ITIC planner: the app shell is cached on the phone so it opens
 // without signal. Team data itself is cached by Firestore's offline persistence.
-const CACHE = "itic-2026-v1";
+const CACHE = "itic-2026-v2";
 const CORE = ["./", "./index.html", "./manifest.json", "./icon.png"];
 
 self.addEventListener("install", e => {
@@ -28,6 +28,15 @@ self.addEventListener("fetch", e => {
         return res;
       })
       .catch(() => caches.match("./index.html")));
+    return;
+  }
+
+  // Live news: always try the network, use the saved copy only when offline.
+  if (url.origin === location.origin && url.pathname.includes("/data/")) {
+    e.respondWith(fetch(req).then(res => {
+      if (res.ok) { const copy = res.clone(); caches.open(CACHE).then(c => c.put(url.pathname, copy)); }
+      return res;
+    }).catch(() => caches.match(url.pathname)));
     return;
   }
 
