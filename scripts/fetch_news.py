@@ -60,7 +60,16 @@ def parse(xml_bytes, limit):
     return items[:limit]
 
 
-ITIC_WORDS = ("itic", "travel & health insurance", "travel and health insurance")
+ITIC_WORDS = ("travel & health insurance", "travel and health insurance")
+# Look-alike companies that share a name with one we meet.
+EXCLUDE = {"IMG (International Medical Group)": ("Town Health",), "Medexpress": ("UPMC", "GoHealth", "urgent care")}
+
+
+def is_itic(title):
+    if "Investors Title" in title:                     # US stock with the ticker ITIC
+        return False
+    return "ITIC Global" in title or any(w in title.lower() for w in ITIC_WORDS) or (
+        re.search(r"\bITIC\b", title) is not None and re.search(r"conference|insurance|Istanbul|assistance", title, re.I) is not None)
 
 
 def company_terms(name):
@@ -81,9 +90,11 @@ def company_query(name):
     return f'"{phrase}" {extra} {SECTOR} when:90d'.replace("  ", " ")
 
 
-def mentions(items, phrase):
-    p = phrase.lower()
-    return [n for n in items if p in n["t"].lower()]
+def mentions(items, phrase, co=""):
+    """Keep headlines naming the company exactly (same capitals), minus known look-alikes."""
+    bad = EXCLUDE.get(co, ())
+    return [n for n in items if re.search(r"(?<!\w)" + re.escape(phrase) + r"(?!\w)", n["t"])
+            and not any(b.lower() in n["t"].lower() for b in bad)]
 
 
 def companies():
@@ -111,12 +122,12 @@ def main():
             time.sleep(1)
         items = list(got.values())
         if key == "itic":
-            items = [n for n in items if any(w in n["t"].lower() for w in ITIC_WORDS)]
+            items = [n for n in items if is_itic(n["t"])]
         items.sort(key=lambda x: -x["d"])
         data[key] = items[:12] if ok else old.get(key, [])  # keep the last good copy if every search failed
     for co in companies():
         try:
-            items = mentions(fetch(company_query(co), 10), company_terms(co)[0])[:4]
+            items = mentions(fetch(company_query(co), 10), company_terms(co)[0], co)[:4]
         except Exception as e:
             print("failed", co, e)
             items = old.get("companies", {}).get(co, [])
