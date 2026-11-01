@@ -21,8 +21,10 @@ OUT = ROOT / "data" / "news.json"
 UA = "Mozilla/5.0 (HWA ITIC planner news fetcher)"
 SECTOR = "(assistance OR insurance OR medical OR hospital OR ambulance OR health)"
 
+# Several simple searches per section work better than one long OR query.
 QUERIES = {
-    "itic": '"ITIC Global" OR "ITIC 2026" OR "International Travel & Health Insurance Conference" when:60d',
+    "itic": ['"ITIC Global" when:120d', 'ITIC Istanbul insurance when:120d',
+             '"International Travel & Health Insurance Conference" when:365d', '"ITIC" travel health insurance when:60d'],
     "istanbul": 'Istanbul (airport OR traffic OR strike OR metro OR ferry OR flights OR storm) when:2d',
     "industry": '("travel insurance" OR "medical assistance" OR "air ambulance") when:7d',
 }
@@ -58,10 +60,30 @@ def parse(xml_bytes, limit):
     return items[:limit]
 
 
+ITIC_WORDS = ("itic", "travel & health insurance", "travel and health insurance")
+
+
+def company_terms(name):
+    """Return (phrase that must appear in headlines, extra search words)."""
+    inner = re.findall(r"\((.*?)\)", name)
+    outer = re.split(r"\s+\+\s+|\s*/\s*", re.sub(r"\s*\(.*?\)", "", name))[0].strip()
+    extra = ""
+    if inner:
+        if re.fullmatch(r"[A-Z0-9&]{2,6}", outer):    # "ISAS (Inter Secours Assistance)" -> use the full name
+            outer = inner[0].strip()
+        else:                                          # "Medical Park (Türkiye)" -> add the country as context
+            extra = inner[0].strip()
+    return outer, extra
+
+
 def company_query(name):
-    name = re.sub(r"\s*\(.*?\)", "", name)          # drop "(Türkiye)", "(DAN Assistance)"
-    name = re.split(r"\s+\+\s+|\s*/\s*", name)[0]   # first of "A + B" or "A / B"
-    return f'"{name.strip()}" {SECTOR} when:90d'
+    phrase, extra = company_terms(name)
+    return f'"{phrase}" {extra} {SECTOR} when:90d'.replace("  ", " ")
+
+
+def mentions(items, phrase):
+    p = phrase.lower()
+    return [n for n in items if p in n["t"].lower()]
 
 
 def companies():
@@ -77,16 +99,24 @@ def companies():
 def main():
     data = {"updated": int(time.time()), "itic": [], "istanbul": [], "industry": [], "companies": {}}
     old = json.loads(OUT.read_text()) if OUT.exists() else {}
-    for key, q in QUERIES.items():
-        try:
-            data[key] = fetch(q, 12)
-        except Exception as e:  # keep the last good copy if one search fails
-            print("failed", key, e)
-            data[key] = old.get(key, [])
-        time.sleep(1)
+    for key, qs in QUERIES.items():
+        got, ok = {}, False
+        for q in ([qs] if isinstance(qs, str) else qs):
+            try:
+                for n in fetch(q, 15):
+                    got.setdefault(n["t"].lower(), n)
+                ok = True
+            except Exception as e:
+                print("failed", key, q, e)
+            time.sleep(1)
+        items = list(got.values())
+        if key == "itic":
+            items = [n for n in items if any(w in n["t"].lower() for w in ITIC_WORDS)]
+        items.sort(key=lambda x: -x["d"])
+        data[key] = items[:12] if ok else old.get(key, [])  # keep the last good copy if every search failed
     for co in companies():
         try:
-            items = fetch(company_query(co), 4)
+            items = mentions(fetch(company_query(co), 10), company_terms(co)[0])[:4]
         except Exception as e:
             print("failed", co, e)
             items = old.get("companies", {}).get(co, [])
