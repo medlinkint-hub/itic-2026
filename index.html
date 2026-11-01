@@ -454,6 +454,7 @@ footer{color:var(--muted);font-size:14.5px;padding-block:0 30px;overflow-wrap:an
   <section class="view" id="v-live" hidden>
     <div class="row sp"><div><h2>Live updates</h2><p class="sub">Istanbul weather, team announcements, ITIC 2026 news and news about the companies you meet.</p></div><button type="button" class="btn" id="liveRefresh">Refresh</button></div>
     <div class="live">
+      <div class="lcard wide" id="dailyCard"><h3 id="dailyTitle">Daily client update</h3><div id="daily" class="nlist"></div></div>
       <div class="lcard" id="wxCard"><h3>Weather · Istanbul (Swissôtel The Bosphorus)</h3><div id="wx"><p class="meta">Loading weather…</p></div></div>
       <div class="lcard" id="updCard"><h3>Team updates</h3><p class="meta" style="margin:0">Post anything the team should know right now: room changes, a contact running late, where to meet. Everyone sees it at once.</p>
         <form id="updForm" class="addm"><input id="updText" maxlength="300" placeholder="e.g. DRK meeting moved to Booth 12" aria-label="Team update"><button type="submit" class="btn pri">Post</button></form><span class="meta" id="updMsg" role="status"></span><div id="updList" class="ulist"></div></div>
@@ -1358,7 +1359,16 @@ const ago=ts=>{const s=Math.max(0,Date.now()/1e3-ts);return s<3600?Math.max(1,Ma
 const safeUrl=u=>/^https:\/\//.test(u||"")?u:"#";
 const newsItem=n=>`<a class="nitem" href="${esc(safeUrl(n.u))}" target="_blank" rel="noopener"><b>${esc(n.t)}</b><span>${esc(n.s||"News")}${n.d?" · "+ago(n.d):""}</span></a>`;
 const coNews=co=>NEWS&&NEWS.companies&&Array.isArray(NEWS.companies[co])?NEWS.companies[co]:[];
-function drawNews(){const empty=t=>`<p class="meta" style="margin:0">${t}</p>`;const N=NEWS||{};const L=k=>Array.isArray(N[k])?N[k]:[];
+function drawDaily(){const el=document.getElementById("daily");if(!el)return;const since=Date.now()-864e5;
+  document.getElementById("dailyTitle").textContent="Daily client update · "+new Date().toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short"});
+  const fresh=(NEWS&&NEWS.daily&&NEWS.daily.fresh)||{};
+  const added=sorted.filter(m=>m.walk&&(+(RAW.walkups[m.id.slice(3)]||{}).at||0)>=since);
+  const freshCos=Object.keys(fresh).filter(co=>Array.isArray(fresh[co])&&fresh[co].length&&!added.some(m=>m.co===co));
+  const newBlk=added.length?`<div class="nco">New clients · last 24 h (${added.length})</div>`+added.map(m=>{const nw=coNews(m.co);return `<button type="button" class="nitem" data-id="${m.id}" style="background:none;border-top:0;border-right:0;border-bottom:0;text-align:left;cursor:pointer;font:inherit"><b>${esc(m.co)}</b><span>${esc([m.contact!=="—"?m.contact:"",m.type!=="Walk-up"?m.type:"",m.country!=="—"?m.country:""].filter(Boolean).join(" · "))}${m.contact||m.type?" · ":""}${DAYS[m.day]} ${m.start} · ${m.team.map(short).join(", ")}</span></button>${nw.length?nw.slice(0,2).map(newsItem).join(""):`<span class="meta" style="padding-left:13px">No news found yet. Searched every hour.</span>`}`}).join(""):"";
+  const freshBlk=freshCos.length?`<div class="nco">Fresh news about your clients · last 24 h</div>`+freshCos.map(co=>`<div class="meta" style="font-weight:800;color:var(--fg)">${esc(co)}</div>${fresh[co].slice(0,2).map(newsItem).join("")}`).join(""):"";
+  el.innerHTML=newBlk||freshBlk?newBlk+freshBlk:`<p class="meta" style="margin:0">No new clients or fresh client news in the last 24 hours. New walk-ups and news appear here automatically.</p>`}
+document.getElementById("daily").addEventListener("click",e=>{const b=e.target.closest("[data-id]");if(b)openBrief(b.dataset.id)});
+function drawNews(){drawDaily();const empty=t=>`<p class="meta" style="margin:0">${t}</p>`;const N=NEWS||{};const L=k=>Array.isArray(N[k])?N[k]:[];
   document.getElementById("newsItic").innerHTML=L("itic").length?L("itic").slice(0,8).map(newsItem).join(""):empty("No ITIC 2026 news yet. Official site: <a href=\"https://www.itic.co/conference/global/\" target=\"_blank\" rel=\"noopener\">itic.co</a>");
   document.getElementById("newsIst").innerHTML=L("istanbul").length?L("istanbul").slice(0,8).map(newsItem).join(""):empty("No transport news in the last 2 days.");
   document.getElementById("newsInd").innerHTML=L("industry").length?L("industry").slice(0,8).map(newsItem).join(""):empty("No industry news collected yet.");
@@ -1397,7 +1407,7 @@ async function fbAdapter(){
       collection:c=>({onSnapshot:(next,err)=>f.collection(FB_PREFIX+c).onSnapshot(sn=>{setSync(!sn.metadata.fromCache,sn.metadata.fromCache?"Offline: showing saved copy, will sync when online":"Live: changes sync to the whole team");next({docs:sn.docs.map(d=>({id:d.id,data:()=>d.data()}))})},e=>{setSync(false,"Sync error: "+(e&&e.code||"unknown"));err&&err(e)})})}}
   catch(e){return null}}
 // ---------- boot ----------
-function renderAll(){fillPeople();drawUpdates();computeClashes();renderKpis();renderFlags();drawMyDay();drawGrid();drawCards();drawTeam();drawPipe();if(!document.getElementById("v-now").hidden)drawNow()}
+function renderAll(){fillPeople();drawUpdates();if(!document.getElementById("v-live").hidden)drawDaily();computeClashes();renderKpis();renderFlags();drawMyDay();drawGrid();drawCards();drawTeam();drawPipe();if(!document.getElementById("v-now").hidden)drawNow()}
 setMode(MODE);loadLocal();rebuild();show(location.hash.slice(1));
 const syncEl=document.getElementById("sync");const setSync=(on,t)=>{syncEl.classList.toggle("on",on);syncEl.title=t;syncEl.querySelector(".lf").textContent=t;syncEl.querySelector(".ls").textContent=t.split(":")[0]};
 (async()=>{const db=await fbAdapter();if(!db){setSync(false,"Offline: changes stay on this device until the connection returns");return}
