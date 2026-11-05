@@ -310,6 +310,20 @@ h2{font-size:20.5px;margin:0;color:var(--navy-ink)}
   footer{padding-bottom:20px}
 }
 .ftog{display:none}
+.rgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(320px,100%),1fr));gap:12px;margin-top:14px}
+.bars{display:grid;gap:8px}
+.bar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;align-items:center}
+.bar span{min-width:0;overflow-wrap:anywhere}
+.bar b{font-variant-numeric:tabular-nums}
+.bar i{grid-column:1/-1;height:8px;border-radius:4px;background:var(--surface-2);overflow:hidden;display:block}
+.bar i u{display:block;height:100%;background:var(--navy-ink);border-radius:4px}
+.rtbl{width:100%;border-collapse:collapse;font-size:15px}
+.rtbl th,.rtbl td{text-align:left;padding:6px 6px;border-bottom:1px solid var(--line)}
+.rtbl td.n,.rtbl th.n{text-align:right;font-variant-numeric:tabular-nums}
+.gform{display:grid;gap:8px}
+.gform textarea,.gform select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg);font:inherit}
+.gform label{font-size:14.5px;font-weight:700;color:var(--muted)}
+.uitem h4{margin:4px 0 0;font-size:14px;color:var(--red);text-transform:uppercase;letter-spacing:.06em}
 .rel-client{background:var(--ok-bg);color:var(--ok)}.rel-provider{background:var(--flex-bg);color:var(--flex)}.rel-both{background:var(--pX-bg);color:var(--pX)}.rel-partner{background:var(--warn-bg);color:var(--warn)}
 .svcs{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(230px,100%),1fr));gap:8px 12px}
 .svcs .fu{align-items:flex-start;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;line-height:1.3}
@@ -431,7 +445,7 @@ footer{color:var(--muted);font-size:14.5px;padding-block:0 30px;overflow-wrap:an
     <button class="tab" role="tab" data-v="live" aria-selected="false"><svg class="ti" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12a7 7 0 0 1 14 0M8.5 12a3.5 3.5 0 0 1 7 0"/><circle cx="12" cy="12" r="1.2"/><path d="M12 13.5V20"/></svg><span class="lf">Live updates</span><span class="ls">Live</span> <span class="n" id="nLive"></span></button>
     <button class="tab" role="tab" data-v="clients" aria-selected="false"><svg class="ti" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M8 10h8M8 14h5"/></svg><span class="lf">Client briefs</span><span class="ls">Briefs</span> <span class="n" id="nClients"></span></button>
     <button class="tab" role="tab" data-v="team" aria-selected="false"><svg class="ti" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="9" r="3"/><circle cx="17" cy="10" r="2.5"/><path d="M3 19c1-3 3.5-4.5 6-4.5s5 1.5 6 4.5M15 15c2 0 4 1 5 3.5"/></svg><span class="lf">Team agendas</span><span class="ls">Team</span></button>
-    <button class="tab" role="tab" data-v="pipeline" aria-selected="false"><svg class="ti" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg><span class="lf">Pipeline</span><span class="ls">Deals</span> <span class="n" id="nPipe"></span></button>
+    <button class="tab" role="tab" data-v="pipeline" aria-selected="false"><svg class="ti" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg><span class="lf">Report</span><span class="ls">Report</span> <span class="n" id="nPipe"></span></button>
     <button class="tab" role="tab" data-v="flags" aria-selected="false"><svg class="ti" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 21V4M6 4h11l-2 4 2 4H6"/></svg><span class="lf">Flags</span><span class="ls">Flags</span> <span class="n" id="nFlags"></span></button>
   </div>
 </nav>
@@ -504,10 +518,13 @@ footer{color:var(--muted);font-size:14.5px;padding-block:0 30px;overflow-wrap:an
 
   <section class="view" id="v-pipeline" hidden>
     <div class="row sp">
-      <div><h2>Post-conference pipeline</h2><p class="sub">Ranked by estimated value × likelihood. Filled from the notes saved in each meeting.</p></div>
+      <div><h2>Conference report</h2><p class="sub">Overview of all meetings, each member's general report, and the post-conference pipeline. Download everything as one Word report.</p></div>
       <div class="row"><button type="button" class="btn pri" id="docxBtn">Download Word report</button><button type="button" class="btn" id="xlsxBtn">Download Excel</button><button type="button" class="btn" id="copyPipe">Copy as table</button><span class="meta" id="copyMsg" role="status"></span></div>
     </div>
     <textarea id="copyFallback" class="inp" rows="4" hidden readonly style="width:100%;margin-top:8px"></textarea>
+    <div id="repOverview"></div>
+    <div class="lcard" id="genCard" style="margin-top:14px"><h3>General report</h3><p class="meta" style="margin:0">Each team member's overall evaluation of ITIC Global 2026. Shared with the team and included at the start of the Word report.</p><div id="genMine"></div><div id="genAll" class="ulist"></div></div>
+    <h3 style="margin:22px 0 0;font-size:20px">Pipeline</h3>
     <div class="pipesum" id="pipeSum"></div>
     <div class="tablewrap"><table class="pipe"><thead><tr><th>#</th><th>Company</th><th>Status</th><th>Est. value</th><th>Likelihood</th><th>Weighted</th><th>Next step</th><th>Follow-up owner</th><th>Follow-up</th></tr></thead><tbody id="pipeBody"></tbody></table></div>
   </section>
@@ -1308,6 +1325,51 @@ function exportXlsx(){
     ["xl/worksheets/sheet2.xml",sheetXml(pipe,[6,28,12,14,11,14,36,18,12,24,24])]];
   saveFile("ITIC-2026-meetings.xlsx",zip(files))}
 document.getElementById("xlsxBtn").addEventListener("click",exportXlsx);
+// ---------- conference report (overview + general reports) ----------
+const GEN_F=[["summary","Overall summary"],["good","What went well"],["improve","What to improve next time"],["takeaways","Key strategic takeaways"]];
+const GENS=()=>Object.entries(RAW.assignments).filter(([k,v])=>k.startsWith("_g_")&&v&&PEOPLE[k.slice(3)]).map(([k,v])=>({p:k.slice(3),...v})).sort((a,b)=>ALLP().indexOf(a.p)-ALLP().indexOf(b.p));
+const isRep=m=>!!(m.note&&(m.note.outcome||m.note.txt||m.note.next||+m.note.rating));
+function repStats(){const L=sorted.filter(live);const held=L.filter(m=>m.status==="done"),ns=L.filter(m=>m.status==="noshow");
+  const rated=L.filter(m=>m.note&&+m.note.rating);const avg=rated.length?rated.reduce((a,m)=>a+ +m.note.rating,0)/rated.length:0;
+  const rows=pipeRows();
+  return {L,held,ns,rated,avg,rep:L.filter(isRep),noRep:held.filter(m=>!isRep(m)),fuDue:held.filter(m=>!(m.note&&m.note.fuSent)),walk:L.filter(m=>m.walk),
+    tot:rows.reduce((a,r)=>a+r.v,0),wt:rows.reduce((a,r)=>a+r.w,0),
+    byOut:Object.entries(OUTC).map(([k,v])=>[v,L.filter(m=>m.note&&m.note.outcome===k).length]),
+    byRel:[...Object.entries(REL).map(([k,v])=>[v,L.filter(m=>relOf(m)===k)]),["Not classified",L.filter(m=>!relOf(m))]],
+    byRate:[5,4,3,2,1].map(r=>[`${stars(r)} ${RATE[r]}`,L.filter(m=>m.note&&+m.note.rating===r).length]),
+    bySvc:SERVICES.map(v=>[v,L.filter(m=>m.note&&(m.note.svc||[]).includes(v)).length]).sort((a,b)=>b[1]-a[1]),
+    byCountry:Object.entries(L.reduce((o,m)=>{const c=(m.country||"—").split(/[,(]/)[0].trim()||"—";o[c]=(o[c]||0)+1;return o},{})).sort((a,b)=>b[1]-a[1]).slice(0,10),
+    byDay:DORD.map(d=>{const l=L.filter(m=>m.day===d);return [DAYS[d],l.length,l.filter(m=>m.status==="done").length,l.filter(m=>m.status==="noshow").length,l.filter(isRep).length]}).filter(r=>r[1]),
+    byPerson:PIDS().map(p=>{const l=L.filter(m=>m.team.includes(p));const r=l.filter(m=>m.note&&+m.note.rating);return [short(p),l.length,l.filter(m=>m.lead===p).length,l.filter(m=>m.status==="done").length,L.filter(m=>m.note&&m.note.by===p).length,r.length?(r.reduce((a,m)=>a+ +m.note.rating,0)/r.length).toFixed(1):"—",L.filter(m=>m.status==="done"&&!(m.note&&m.note.fuSent)&&(m.note&&PEOPLE[m.note.owner]?m.note.owner:m.lead)===p).length]}).filter(r=>r[1])}}
+const bars=(rows,max)=>{const mx=max||Math.max(1,...rows.map(r=>r[1]));const shown=rows.filter(r=>r[1]);return shown.length?`<div class="bars">${shown.map(([l,v])=>`<div class="bar"><span>${esc(l)}</span><b>${v}</b><i><u style="width:${Math.round(v/mx*100)}%"></u></i></div>`).join("")}</div>`:`<p class="meta" style="margin:0">Nothing recorded yet.</p>`};
+function drawReport(){const el=document.getElementById("repOverview");if(!el)return;const S=repStats();
+  const k=[["Meetings planned",S.L.length],["Held",S.held.length],["No-shows",S.ns.length],["Walk-ups",S.walk.length],["With a report",S.rep.length],["Held, no report yet",S.noRep.length],["Average rating",S.rated.length?S.avg.toFixed(1)+" / 5":"—"],["Follow-ups not sent",S.fuDue.length]];
+  el.innerHTML=`<div class="pipesum">${k.map(([l,v])=>`<div class="kp ${(l==="Held, no report yet"||l==="Follow-ups not sent")&&v?"warn":""}"><b>${v}</b><span>${l}</span></div>`).join("")}</div>
+  ${S.noRep.length?`<div class="alert" style="margin-top:10px">Held but no report yet: ${S.noRep.map(m=>`<a href="#" data-open="${m.id}" style="color:inherit">${esc(m.co)}</a>`).join(", ")}</div>`:""}
+  <div class="rgrid">
+    <div class="lcard"><h3>Outcomes</h3>${bars(S.byOut)}</div>
+    <div class="lcard"><h3>Clients and providers</h3>${bars(S.byRel.map(([l,a])=>[l,a.length]))}<p class="meta" style="margin:0">${S.byRel.filter(r=>r[1].length).map(([l,a])=>`${l}: ${a.filter(m=>m.status==="done").length} held`).join(" · ")}</p></div>
+    <div class="lcard"><h3>Meeting ratings</h3>${bars(S.byRate)}</div>
+    <div class="lcard"><h3>Services clients asked about</h3>${bars(S.bySvc)}</div>
+    <div class="lcard"><h3>By day</h3><table class="rtbl"><thead><tr><th>Day</th><th class="n">Planned</th><th class="n">Held</th><th class="n">No-show</th><th class="n">Reports</th></tr></thead><tbody>${S.byDay.map(r=>`<tr><td>${r[0]}</td>${r.slice(1).map(v=>`<td class="n">${v}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
+    <div class="lcard"><h3>By team member</h3><div class="tablewrap"><table class="rtbl"><thead><tr><th>Member</th><th class="n">Meetings</th><th class="n">Led</th><th class="n">Held</th><th class="n">Reports</th><th class="n">Avg ★</th><th class="n">Follow-ups due</th></tr></thead><tbody>${S.byPerson.map(r=>`<tr><td>${esc(r[0])}</td>${r.slice(1).map(v=>`<td class="n">${v}</td>`).join("")}</tr>`).join("")}</tbody></table></div></div>
+    <div class="lcard"><h3>Countries met</h3>${bars(S.byCountry)}</div>
+  </div>`;
+  drawGen()}
+document.getElementById("repOverview").addEventListener("click",e=>{const a=e.target.closest("[data-open]");if(a){e.preventDefault();openBrief(a.dataset.open)}});
+let genDirty=false;
+function drawGen(){const mine=document.getElementById("genMine"),all=document.getElementById("genAll");if(!mine)return;
+  if(!genDirty){const g=(PEOPLE[ME]&&RAW.assignments["_g_"+ME])||{};
+    mine.innerHTML=!PEOPLE[ME]?`<p class="meta" style="margin:0">Pick your name in “I am” at the top to write your general report.</p>`:`<form class="gform" id="genForm"><div class="row sp"><b>Your report: ${esc(short(ME))}</b><span class="meta">${g.at?"Saved "+ago(g.at/1e3):""}</span></div>
+      <label for="gRate">Overall value of ITIC 2026 for HWA</label><select id="gRate"><option value="0">Not rated</option>${[5,4,3,2,1].map(x=>`<option value="${x}" ${+g.rating===x?"selected":""}>${stars(x)} ${RATE[x]}</option>`).join("")}</select>
+      ${GEN_F.map(([k,l])=>`<label for="g_${k}">${l}</label><textarea id="g_${k}" rows="3" maxlength="3000">${esc(g[k])}</textarea>`).join("")}
+      <div class="row"><button type="submit" class="btn pri">Save general report</button><span class="meta" id="genMsg" role="status"></span></div></form>`}
+  const gs=GENS().filter(g=>g.p!==ME);
+  all.innerHTML=gs.length?`<div class="nco">From the team</div>`+gs.map(g=>`<div class="uitem"><div class="row">${avS(g.p)}<b>${esc(short(g.p))}</b>${+g.rating?`<span style="color:var(--warn)">${stars(+g.rating)}</span>`:""}<span class="meta">${g.at?ago(g.at/1e3):""}</span></div>${GEN_F.filter(([k])=>(g[k]||"").trim()).map(([k,l])=>`<h4>${l}</h4><p style="white-space:pre-wrap">${esc(g[k])}</p>`).join("")||'<p class="meta">Nothing written yet.</p>'}</div>`).join(""):""}
+document.getElementById("genMine").addEventListener("input",()=>{genDirty=true});
+document.getElementById("genMine").addEventListener("submit",async e=>{e.preventDefault();const g=i=>document.getElementById(i);g("genMsg").textContent="Saving…";
+  const data={rating:+g("gRate").value||0,at:Date.now()};GEN_F.forEach(([k])=>data[k]=g("g_"+k).value.slice(0,3000));
+  if(await STORE.save("assignments","_g_"+ME,data)){genDirty=false;drawGen();const m=g("genMsg");if(m)m.textContent="Saved. "+shareNote()}else g("genMsg").textContent="Could not save."});
 // ---------- Word report (.docx, built in the browser) ----------
 const wx_=s=>xe(s);
 const wRun=(t,o={})=>`<w:r><w:rPr>${o.b?"<w:b/>":""}${o.i?"<w:i/>":""}${o.c?`<w:color w:val="${o.c}"/>`:""}${o.sz?`<w:sz w:val="${o.sz}"/>`:""}</w:rPr>${String(t??"").split("\n").map((l,i)=>(i?"<w:br/>":"")+`<w:t xml:space="preserve">${wx_(l)}</w:t>`).join("")}</w:r>`;
@@ -1328,10 +1390,18 @@ async function exportDocx(only){
     const held=list.filter(m=>m.status==="done"),ns=list.filter(m=>m.status==="noshow"),rep=list.filter(reported);
     const rated=rep.filter(m=>+m.note.rating);const avg=rated.length?(rated.reduce((a,m)=>a+ +m.note.rating,0)/rated.length).toFixed(1):"—";
     const rows=pipeRows();const tot=rows.reduce((a,r)=>a+r.v,0),wt=rows.reduce((a,r)=>a+r.w,0);
+    const gens=GENS().filter(g=>+g.rating||GEN_F.some(([k])=>(g[k]||"").trim()));
+    if(gens.length){body+=wP("General report",{st:"Heading1"});
+      for(const g of gens){body+=wP(`${PEOPLE[g.p].name}${+g.rating?" — overall value "+stars(+g.rating)+" "+RATE[+g.rating]:""}`,{st:"Heading3",keep:true});
+        for(const [k,l] of GEN_F)if((g[k]||"").trim())body+=wP(l,{b:true,c:"D14430",after:40,keep:true})+wP(g[k].trim(),{after:160})}}
     body+=wP("1. Summary",{st:"Heading1"});
-    body+=kv([["Meetings planned",String(list.length)],["Meetings held",String(held.length)],["No-shows",String(ns.length)],["Walk-up meetings",String(list.filter(m=>m.walk).length)],["Meetings with a report",String(rep.length)],["Average meeting rating",rated.length?`${avg} / 5 (${rated.length} rated)`:"—"],["Pipeline: estimated annual value",eur(tot)],["Pipeline: weighted by likelihood",eur(wt)],["Follow-ups not yet sent",String(list.filter(m=>m.status==="done"&&!(m.note&&m.note.fuSent)).length)]]);
+    body+=kv([["Meetings planned",String(list.length)],["Meetings held",String(held.length)],["No-shows",String(ns.length)],["Walk-up meetings",String(list.filter(m=>m.walk).length)],["Meetings with a report",String(list.filter(isRep).length)],["Held, no report yet",String(held.filter(m=>!isRep(m)).length)],["Average meeting rating",rated.length?`${avg} / 5 (${rated.length} rated)`:"—"],["Pipeline: estimated annual value",eur(tot)],["Pipeline: weighted by likelihood",eur(wt)],["Follow-ups not yet sent",String(list.filter(m=>m.status==="done"&&!(m.note&&m.note.fuSent)).length)]]);
     const rl=[...Object.entries(REL).map(([k,v])=>[v,list.filter(m=>relOf(m)===k)]),["Not classified",list.filter(m=>!relOf(m))]].filter(r=>r[1].length);
     body+=wP("Clients and providers",{st:"Heading2"});body+=wTbl([["Relationship","Meetings","Held","Companies"],...rl.map(([v,l])=>[v,String(l.length),String(l.filter(m=>m.status==="done").length),l.map(m=>m.co).join(", ")])],[2000,1000,800,5700]);
+    const RS=repStats();
+    body+=wP("By day",{st:"Heading2"});body+=wTbl([["Day","Planned","Held","No-show","Reports"],...RS.byDay.map(r=>r.map(String))],[3000,1500,1500,1500,1500]);
+    body+=wP("By team member",{st:"Heading2"});body+=wTbl([["Member","Meetings","Led","Held","Reports written","Avg rating","Follow-ups due"],...RS.byPerson.map(r=>r.map(String))],[2200,1100,900,900,1400,1200,1300]);
+    if(RS.byCountry.length){body+=wP("Countries met",{st:"Heading2"});body+=wTbl([["Country","Meetings"],...RS.byCountry.map(r=>r.map(String))],[7000,2000])}
     const oc=Object.entries(OUTC).map(([k,v])=>[v,String(list.filter(m=>m.note&&m.note.outcome===k).length)]).filter(r=>r[1]!=="0");
     if(oc.length){body+=wP("Outcomes",{st:"Heading2"});body+=wTbl([["Outcome","Meetings"],...oc],[7000,2000])}
     const svc=SERVICES.map(v=>[v,String(list.filter(m=>m.note&&(m.note.svc||[]).includes(v)).length)]).filter(r=>r[1]!=="0").sort((a,b)=>b[1]-a[1]);
@@ -1491,7 +1561,7 @@ async function fbAdapter(){
       collection:c=>({onSnapshot:(next,err)=>f.collection(FB_PREFIX+c).onSnapshot(sn=>{setSync(!sn.metadata.fromCache,sn.metadata.fromCache?"Offline: showing saved copy, will sync when online":"Live: changes sync to the whole team");next({docs:sn.docs.map(d=>({id:d.id,data:()=>d.data()}))})},e=>{setSync(false,"Sync error: "+(e&&e.code||"unknown"));err&&err(e)})})}}
   catch(e){return null}}
 // ---------- boot ----------
-function renderAll(){fillPeople();drawUpdates();if(!document.getElementById("v-live").hidden)drawDaily();computeClashes();renderKpis();renderFlags();drawMyDay();drawGrid();drawCards();drawTeam();drawPipe();if(!document.getElementById("v-now").hidden)drawNow()}
+function renderAll(){fillPeople();drawUpdates();if(!document.getElementById("v-live").hidden)drawDaily();computeClashes();renderKpis();renderFlags();drawMyDay();drawGrid();drawCards();drawTeam();drawPipe();drawReport();if(!document.getElementById("v-now").hidden)drawNow()}
 setMode(MODE);loadLocal();rebuild();show(location.hash.slice(1));
 const syncEl=document.getElementById("sync");const setSync=(on,t)=>{syncEl.classList.toggle("on",on);syncEl.title=t;syncEl.querySelector(".lf").textContent=t;syncEl.querySelector(".ls").textContent=t.split(":")[0]};
 (async()=>{const db=await fbAdapter();if(!db){setSync(false,"Offline: changes stay on this device until the connection returns");return}
