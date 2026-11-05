@@ -310,6 +310,7 @@ h2{font-size:20.5px;margin:0;color:var(--navy-ink)}
   footer{padding-bottom:20px}
 }
 .ftog{display:none}
+.svcs{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:6px 12px}
 .live{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(320px,100%),1fr));gap:12px;margin-top:14px}
 .lcard{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;display:grid;grid-template-columns:minmax(0,1fr);gap:10px;align-content:start;min-width:0}
 .lcard.wide{grid-column:1/-1}
@@ -499,7 +500,7 @@ footer{color:var(--muted);font-size:14.5px;padding-block:0 30px;overflow-wrap:an
   <section class="view" id="v-pipeline" hidden>
     <div class="row sp">
       <div><h2>Post-conference pipeline</h2><p class="sub">Ranked by estimated value × likelihood. Filled from the notes saved in each meeting.</p></div>
-      <div class="row"><button type="button" class="btn pri" id="xlsxBtn">Download Excel</button><button type="button" class="btn" id="copyPipe">Copy as table</button><span class="meta" id="copyMsg" role="status"></span></div>
+      <div class="row"><button type="button" class="btn pri" id="docxBtn">Download Word report</button><button type="button" class="btn" id="xlsxBtn">Download Excel</button><button type="button" class="btn" id="copyPipe">Copy as table</button><span class="meta" id="copyMsg" role="status"></span></div>
     </div>
     <textarea id="copyFallback" class="inp" rows="4" hidden readonly style="width:100%;margin-top:8px"></textarea>
     <div class="pipesum" id="pipeSum"></div>
@@ -783,6 +784,10 @@ const tm=s=>{const[h,m]=s.split(":").map(Number);return h*60+m};
 const fmt=n=>String(Math.floor(n/60)).padStart(2,"0")+":"+String(n%60).padStart(2,"0");
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const fitHtml=f=>f?`<span class="fit" title="Fit ${f}/5">${[1,2,3,4,5].map(i=>`<i class="${i<=f?"on":""}"></i>`).join("")}</span>`:`<span class="pill tag-verify">Fit ?</span>`;
+const OUTC={agree:"Agreement reached",strong:"Strong interest – next step agreed",follow:"Interested – needs follow-up",info:"Information exchange only",nofit:"Not a fit"};
+const RATE={5:"Excellent",4:"Good",3:"Average",2:"Weak",1:"Poor"},PRIO={high:"High",med:"Medium",low:"Low"};
+const SERVICES=["Case management (GOPs, medical updates)","Cost containment / bill review","Medical reports / fit-to-fly","Repatriation & medical escorts","Air ambulance ground support","Hospital network / direct billing","Reciprocal agreement","Egypt / MENA coverage","Telemedicine / second opinion"];
+const stars=r=>"★".repeat(r)+"☆".repeat(5-r);
 const ST={confirmed:"Confirmed",awaiting:"Awaiting",flexible:"Booth / flexible",done:"Done",noshow:"No-show",cancelled:"Cancelled"};
 const stHtml=s=>`<span class="pill st-${s}">${ST[s]||s}</span>`;
 const avHtml=t=>`<span class="avs">${t.map(p=>`<span class="av ${pc(p)}" title="${esc(PEOPLE[p]?PEOPLE[p].name:"")}">${esc(ini(p))}</span>`).join("")}</span>`;
@@ -947,7 +952,7 @@ function drawCards(){
     <div class="row sp"><span class="when">${DAYS[m.day]} · ${m.start}–${m.end}</span>${stHtml(m.status)}</div>
     <h3>${esc(m.co)}</h3>
     <div class="row sp"><span class="meta">${esc(m.type)} · ${esc(m.country)}</span>${fitHtml(m.fit)}</div>
-    <div class="row">${m.existing?'<span class="pill tag-existing">Existing client</span>':""}${m.verify?'<span class="pill tag-verify">Verify profile</span>':""}${m.changed?'<span class="pill st-flexible">Team changed</span>':""}${m.walk?'<span class="pill st-flexible">Walk-up</span>':""}${m.note&&m.note.next?'<span class="pill st-done">Notes</span>':""}${m.moved?'<span class="pill moved">Moved</span>':""}${m.late?`<span class="pill late">${short(m.late.p)} ${+m.late.min} min late</span>`:""}</div>
+    <div class="row">${m.existing?'<span class="pill tag-existing">Existing client</span>':""}${m.verify?'<span class="pill tag-verify">Verify profile</span>':""}${m.changed?'<span class="pill st-flexible">Team changed</span>':""}${m.walk?'<span class="pill st-flexible">Walk-up</span>':""}${m.note&&m.note.outcome?`<span class="pill st-done">${esc(OUTC[m.note.outcome])}</span>`:m.note&&(m.note.next||m.note.txt)?'<span class="pill st-done">Report</span>':""}${m.note&&+m.note.rating?`<span class="pill" style="color:var(--warn)">${stars(+m.note.rating)}</span>`:""}${m.moved?'<span class="pill moved">Moved</span>':""}${m.late?`<span class="pill late">${short(m.late.p)} ${+m.late.min} min late</span>`:""}</div>
     <div><div class="lbl">What they do</div><p>${esc(m.does)}</p></div>
     <div class="prop"><div class="lbl">${m.note&&m.note.next?"Next step":"HWA proposes"}</div><p>${esc(m.note&&m.note.next?m.note.next:m.propose[0])}</p></div>
     <div class="row sp"><span class="meta">${esc(m.contact)}</span>${avHtml(m.team)}</div>
@@ -1045,10 +1050,15 @@ function openBrief(id){const m=M.find(x=>x.id===id);if(!m)return;const n=m.note|
     <div class="row"><button type="button" class="btn" id="calOne">Add to calendar</button><button type="button" class="btn" id="shareOne">Share brief</button></div>
     ${m.status==="done"||m.status==="noshow"?`<div class="editor"><div class="row sp"><b>Follow-up email</b>${n.fuSent?stHtml("done").replace("Done","Sent"):""}</div><p class="meta" style="margin:4px 0 8px">Drafted from your notes. Edit it, then send from your email app or Gmail.</p><button type="button" class="btn pri" id="draftBtn">Draft follow-up email</button><div id="draftBox"></div></div>`:""}
 
-    <details class="editor" id="edNotes" ${m.note||m.status==="done"?"open":""}><summary>Status &amp; meeting notes</summary>
+    <details class="editor" id="edNotes" ${m.note||m.status==="done"?"open":""}><summary>Meeting report &amp; evaluation</summary>
       <div class="form">
         <div class="fld"><label for="nSt">Status</label><select id="nSt">${["confirmed","awaiting","flexible","done","noshow","cancelled"].map(s=>`<option value="${s}" ${s===m.status?"selected":""}>${ST[s]}</option>`).join("")}</select></div>
         <div class="fld"><label for="nOwner">Follow-up owner</label><select id="nOwner">${[...new Set([...PIDS(),n.owner||m.lead])].filter(p=>PEOPLE[p]).map(p=>`<option value="${p}" ${(n.owner||m.lead)===p?"selected":""}>${esc(PEOPLE[p].name)}</option>`).join("")}</select></div>
+        <div class="fld w"><label for="nOut">Outcome</label><select id="nOut"><option value="">Not evaluated yet</option>${Object.entries(OUTC).map(([k,v])=>`<option value="${k}" ${n.outcome===k?"selected":""}>${v}</option>`).join("")}</select></div>
+        <div class="fld"><label for="nRate">Meeting rating</label><select id="nRate"><option value="0">Not rated</option>${[5,4,3,2,1].map(x=>`<option value="${x}" ${+n.rating===x?"selected":""}>${stars(x)} ${RATE[x]}</option>`).join("")}</select></div>
+        <div class="fld"><label for="nPrio">Follow-up priority</label><select id="nPrio"><option value="">—</option>${Object.entries(PRIO).map(([k,v])=>`<option value="${k}" ${n.prio===k?"selected":""}>${v}</option>`).join("")}</select></div>
+        <div class="fld w"><label for="nTxt">Meeting report: what was discussed <span style="font-weight:500">(tap the microphone on your keyboard to dictate)</span></label><textarea id="nTxt" rows="5" maxlength="4000">${esc(n.txt)}</textarea></div>
+        <div class="fld w"><span class="meta">Services they are interested in</span><div class="svcs">${SERVICES.map((v,i)=>`<label class="fu"><input type="checkbox" data-svc="${i}" ${(n.svc||[]).includes(v)?"checked":""}> ${v}</label>`).join("")}</div></div>
         <div class="fld w"><label for="nEmail">Contact email</label><input id="nEmail" type="email" inputmode="email" autocomplete="off" maxlength="160" value="${esc(n.email)}" placeholder="From their business card"></div>
         <div class="fld w"><label for="nNeeds">What they need</label><textarea id="nNeeds" rows="2" maxlength="600">${esc(n.needs)}</textarea></div>
         <div class="fld"><label for="nVol">Volumes</label><input id="nVol" maxlength="160" value="${esc(n.vol)}" placeholder="e.g. 40 cases/summer in Greece"></div>
@@ -1057,11 +1067,12 @@ function openBrief(id){const m=M.find(x=>x.id===id);if(!m)return;const n=m.note|
         <div class="fld w"><label for="nNext">Next step</label><input id="nNext" maxlength="300" value="${esc(n.next)}" placeholder="e.g. Send rate sheet by Fri 6 Nov"></div>
         <div class="fld"><label for="nVal">Est. annual value (€)</label><input id="nVal" type="number" min="0" step="1000" value="${+n.value>0?+n.value:""}"></div>
         <div class="fld"><label for="nLik">Interest / likelihood</label><select id="nLik">${Object.entries(LIK).map(([k,v])=>`<option value="${k}" ${(+n.lik||30)===+k?"selected":""}>${v}</option>`).join("")}</select></div>
-        <div class="fld w"><label for="nTxt">Meeting notes <span style="font-weight:500">(tap the microphone on your keyboard to dictate)</span></label><textarea id="nTxt" rows="4" maxlength="3000">${esc(n.txt)}</textarea></div>
+        <div class="fld w"><label for="nAct">Actions agreed <span style="font-weight:500">(one per line)</span></label><textarea id="nAct" rows="3" maxlength="1500" placeholder="Send rate sheet – Clara – Fri 6 Nov">${esc(n.actions)}</textarea></div>
+        <div class="fld w"><label for="nRisk">Concerns / risks</label><textarea id="nRisk" rows="2" maxlength="800">${esc(n.risks)}</textarea></div>
         <div class="fld w"><span class="meta">Business card</span>${n.card?`<img class="cardimg" id="cardImg" src="${n.card}" alt="Business card photo">`:""}<div class="row"><label class="btn" for="nCard" style="cursor:pointer">${n.card?"Replace photo":"📷 Take photo of card"}</label><input id="nCard" type="file" accept="image/*" capture="environment" hidden>${n.card?'<button type="button" class="btn danger" id="cardDel">Remove</button>':""}<span class="meta" id="cardMsg" role="status"></span></div></div>
         <label class="fu w"><input type="checkbox" id="nFu" ${n.fuSent?"checked":""}> Follow-up email sent</label>
       </div>
-      <div class="row" style="margin-top:10px"><button type="button" class="btn pri" id="saveNotes">Save notes</button><span class="meta" id="notesMsg" role="status"></span></div>
+      <div class="row" style="margin-top:10px"><button type="button" class="btn pri" id="saveNotes">Save report</button><button type="button" class="btn" id="docOne">Word report</button><span class="meta" id="notesMsg" role="status"></span></div>
     </details>
 
     <details class="editor" id="edMove"><summary>Reschedule or change location</summary>
@@ -1092,8 +1103,10 @@ function openBrief(id){const m=M.find(x=>x.id===id);if(!m)return;const n=m.note|
     ${m.walk?`<div class="row"><button type="button" class="btn" id="editWalk">Edit walk-up</button><button type="button" class="btn danger" id="delWalk">Delete walk-up</button><span class="meta" id="delMsg" role="status"></span></div>`:""}
   </div>`);
   // notes
+  const collectNotes=()=>{const g=i=>document.getElementById(i);return {...(RAW.notes[m.id]||{}),email:g("nEmail").value.trim().slice(0,160),txt:g("nTxt").value.slice(0,4000),outcome:OUTC[g("nOut").value]?g("nOut").value:"",rating:+g("nRate").value||0,prio:PRIO[g("nPrio").value]?g("nPrio").value:"",svc:[...document.querySelectorAll("[data-svc]")].filter(x=>x.checked).map(x=>SERVICES[+x.dataset.svc]),actions:g("nAct").value.slice(0,1500),risks:g("nRisk").value.slice(0,800),by:ME||(RAW.notes[m.id]||{}).by||"",status:g("nSt").value,owner:g("nOwner").value,needs:g("nNeeds").value.slice(0,600),vol:g("nVol").value.slice(0,160),prov:g("nProv").value.slice(0,160),dec:g("nDec").value.slice(0,160),next:g("nNext").value.slice(0,300),value:Math.max(0,Math.round(+g("nVal").value||0)),lik:+g("nLik").value,fuSent:g("nFu").checked,at:Date.now()}};
+  drawer.collectNotes=collectNotes;
   document.getElementById("saveNotes").onclick=async()=>{const g=i=>document.getElementById(i);const msg=g("notesMsg");msg.textContent="Saving…";
-    const data={...(RAW.notes[m.id]||{}),email:g("nEmail").value.trim().slice(0,160),txt:g("nTxt").value.slice(0,3000),status:g("nSt").value,owner:g("nOwner").value,needs:g("nNeeds").value.slice(0,600),vol:g("nVol").value.slice(0,160),prov:g("nProv").value.slice(0,160),dec:g("nDec").value.slice(0,160),next:g("nNext").value.slice(0,300),value:Math.max(0,Math.round(+g("nVal").value||0)),lik:+g("nLik").value,fuSent:g("nFu").checked,at:Date.now()};
+    const data=collectNotes();
     const ok=await STORE.save("notes",m.id,data);if(ok){openBrief(m.id);document.getElementById("notesMsg").textContent="Saved. "+shareNote()}else msg.textContent="Could not save. You may only have view access."};
   // team
   const pk=wirePicker(m.team,m.lead,()=>({m,day:m.day,start:m.start,end:m.end}),sel=>{document.getElementById("saveTeam").disabled=!sel.length});
@@ -1179,12 +1192,13 @@ function wireBrief(m){const g=i=>document.getElementById(i);
       const team=ALLP().filter(x=>(m.team.includes(x)&&x!==ME)||x===p);const lead=m.lead===ME?p:m.lead;
       if(await saveAssign(m,{team,lead})){openBrief(m.id);shareText("Can you cover a meeting?",`Hi ${short(p)}, can you cover ${m.co} on ${DAYS[m.day]} ${m.start}–${m.end} at ${m.loc}? I've moved it to you in the ITIC planner.\n${appLink()}`)}}};
   g("quickTeam").onclick=()=>{const d=g("edTeam");d.open=true;d.scrollIntoView({block:"start",behavior:"smooth"})};
+  g("docOne").onclick=()=>exportDocx([m]);
   g("calOne").onclick=()=>downloadIcs(icsFor([m]),`ITIC-${m.co.replace(/[^\w]+/g,"-").slice(0,40)}.ics`);
   g("shareOne").onclick=()=>shareText(m.co,briefText(m));
   const db=g("draftBtn");if(db)db.onclick=()=>showDraft(m);
   const ci=g("cardImg");if(ci)ci.onclick=()=>ci.classList.toggle("big");
   g("nCard").onchange=async e=>{const f=e.target.files[0];if(!f)return;g("cardMsg").textContent="Saving photo…";
-    try{const card=await shrink(f);if(await saveNote(m.id,{card,status:(RAW.notes[m.id]||{}).status||m.status}))reopen("edNotes","cardMsg","Card saved. "+shareNote());else g("cardMsg").textContent="Could not save the photo."}catch(err){g("cardMsg").textContent="Could not read that image."}};
+    try{const card=await shrink(f);if(await saveNote(m.id,{...drawer.collectNotes(),card}))reopen("edNotes","cardMsg","Card saved. "+shareNote());else g("cardMsg").textContent="Could not save the photo."}catch(err){g("cardMsg").textContent="Could not read that image."}};
   const cd=g("cardDel");if(cd)cd.onclick=async()=>{if(cd.dataset.armed!=="1"){cd.dataset.armed="1";cd.textContent="Tap again to remove";return}if(await saveNote(m.id,{card:null}))reopen("edNotes")};
   const mvWarn=()=>{const s=g("mvStart").value;if(!/^\d\d:\d\d$/.test(s))return;const e2=fmt(tm(s)+ +g("mvDur").value);const w=m.team.flatMap(p=>overlapFor(m,p,g("mvDay").value,s,e2).map(o=>`${short(p)} is also at ${o.co} (${o.start}–${o.end})`));g("mvWarn").innerHTML=w.map(x=>`<div class="alert" style="margin-top:8px">${esc(x)}</div>`).join("")};
   ["mvDay","mvStart","mvDur"].forEach(i=>g(i).addEventListener("input",mvWarn));
@@ -1246,22 +1260,22 @@ function downloadIcs(text,name){if(IOS){location.href="data:text/calendar;charse
 function calFor(p){downloadIcs(icsFor(sorted.filter(m=>m.team.includes(p))),`ITIC-2026-${short(p).replace(/[^\w]+/g,"-")}.ics`)}
 // ---------- Excel (.xlsx, built in the browser) ----------
 const CRC=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return b=>{let c=0xFFFFFFFF;for(let i=0;i<b.length;i++)c=t[(c^b[i])&255]^(c>>>8);return(c^0xFFFFFFFF)>>>0}})();
-function zip(files){const enc=new TextEncoder();const parts=[],cen=[];let off=0;
+function zip(files,type){const enc=new TextEncoder();const parts=[],cen=[];let off=0;
   const u16=v=>[v&255,v>>>8&255],u32=v=>[v&255,v>>>8&255,v>>>16&255,v>>>24&255];
-  for(const [name,txt] of files){const nb=enc.encode(name),db=enc.encode(txt),crc=CRC(db);
+  for(const [name,txt] of files){const nb=enc.encode(name),db=typeof txt==="string"?enc.encode(txt):txt,crc=CRC(db);
     const head=[...u32(0x04034b50),...u16(20),...u16(0x0800),...u16(0),...u16(0),...u16(0x21),...u32(crc),...u32(db.length),...u32(db.length),...u16(nb.length),...u16(0)];
     parts.push(new Uint8Array(head),nb,db);
     cen.push(new Uint8Array([...u32(0x02014b50),...u16(20),...u16(20),...u16(0x0800),...u16(0),...u16(0),...u16(0x21),...u32(crc),...u32(db.length),...u32(db.length),...u16(nb.length),...u16(0),...u16(0),...u16(0),...u16(0),...u32(0),...u32(off)]),nb);
     off+=head.length+nb.length+db.length}
   const csize=cen.reduce((s,a)=>s+a.length,0);
-  return new Blob([...parts,...cen,new Uint8Array([...u32(0x06054b50),...u16(0),...u16(0),...u16(files.length),...u16(files.length),...u32(csize),...u32(off),...u16(0)])],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"})}
+  return new Blob([...parts,...cen,new Uint8Array([...u32(0x06054b50),...u16(0),...u16(0),...u16(files.length),...u16(files.length),...u32(csize),...u32(off),...u16(0)])],{type:type||"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"})}
 const xe=s=>String(s??"").replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 const colL=i=>{let s="";i++;while(i){const r=(i-1)%26;s=String.fromCharCode(65+r)+s;i=Math.floor((i-1)/26)}return s};
 function sheetXml(rows,widths){return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><cols>${widths.map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`).join("")}</cols><sheetData>${rows.map((r,ri)=>`<row r="${ri+1}">${r.map((v,ci)=>{const ref=colL(ci)+(ri+1),st=ri?"":' s="1"';return typeof v==="number"&&isFinite(v)?`<c r="${ref}"${st}><v>${v}</v></c>`:`<c r="${ref}" t="inlineStr"${st}><is><t xml:space="preserve">${xe(v)}</t></is></c>`}).join("")}</row>`).join("")}</sheetData><autoFilter ref="A1:${colL(rows[0].length-1)}${rows.length}"/></worksheet>`}
 function exportXlsx(){
   const who=t=>t.map(short).join(", ");
-  const meet=[["Day","Start","End","Location","Company","Contact","Contact email","Type","Country","Status","Fit","HWA team","Lead","Walk-up","Moved","What they need","Volumes","Current provider","Decision-maker","Next step","Est. annual value (EUR)","Likelihood %","Weighted (EUR)","Follow-up owner","Follow-up sent","Meeting notes","Goal","Business card"],
-    ...sorted.map(m=>{const n=m.note||{};const v=Math.max(0,+n.value||0),l=LIK[+n.lik]?+n.lik:30;return [DAYS[m.day],m.start,m.end,m.loc,m.co,m.contact,n.email||"",m.type,m.country,ST[m.status]||m.status,m.fit||"",who(m.team),short(m.lead),m.walk?"Yes":"",m.moved?"Yes":"",n.needs||"",n.vol||"",n.prov||"",n.dec||"",n.next||"",v||"",n.value?l:"",v?Math.round(v*l/100):"",PEOPLE[n.owner]?short(n.owner):(m.note?short(m.lead):""),n.fuSent?"Yes":"",n.txt||"",m.goal,n.card?"Photo in planner":""]})];
+  const meet=[["Day","Start","End","Location","Company","Contact","Contact email","Type","Country","Status","Fit","HWA team","Lead","Walk-up","Moved","What they need","Volumes","Current provider","Decision-maker","Next step","Est. annual value (EUR)","Likelihood %","Weighted (EUR)","Follow-up owner","Follow-up sent","Meeting report","Goal","Business card","Outcome","Rating (1-5)","Priority","Services of interest","Actions agreed","Concerns / risks"],
+    ...sorted.map(m=>{const n=m.note||{};const v=Math.max(0,+n.value||0),l=LIK[+n.lik]?+n.lik:30;return [DAYS[m.day],m.start,m.end,m.loc,m.co,m.contact,n.email||"",m.type,m.country,ST[m.status]||m.status,m.fit||"",who(m.team),short(m.lead),m.walk?"Yes":"",m.moved?"Yes":"",n.needs||"",n.vol||"",n.prov||"",n.dec||"",n.next||"",v||"",n.value?l:"",v?Math.round(v*l/100):"",PEOPLE[n.owner]?short(n.owner):(m.note?short(m.lead):""),n.fuSent?"Yes":"",n.txt||"",m.goal,n.card?"Photo in planner":"",OUTC[n.outcome]||"",+n.rating||"",PRIO[n.prio]||"",(n.svc||[]).join("; "),n.actions||"",n.risks||""]})];
   const pipe=[["Rank","Company","Status","Est. annual value (EUR)","Likelihood %","Weighted (EUR)","Next step","Follow-up owner","Follow-up sent","Contact","Contact email"],
     ...pipeRows().map((r,i)=>[i+1,r.m.co,ST[r.m.status],Math.round(r.v),r.l,Math.round(r.w),r.m.note.next||"",PEOPLE[r.m.note.owner]?PEOPLE[r.m.note.owner].name:PEOPLE[r.m.lead].name,r.m.note.fuSent?"Yes":"No",r.m.contact,r.m.note.email||""])];
   const files=[["[Content_Types].xml",`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>`],
@@ -1269,10 +1283,57 @@ function exportXlsx(){
     ["xl/workbook.xml",`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Meetings" sheetId="1" r:id="rId1"/><sheet name="Pipeline" sheetId="2" r:id="rId2"/></sheets><definedNames><definedName name="_xlnm._FilterDatabase" localSheetId="0" hidden="1">Meetings!$A$1:$${colL(meet[0].length-1)}$${meet.length}</definedName><definedName name="_xlnm._FilterDatabase" localSheetId="1" hidden="1">Pipeline!$A$1:$${colL(pipe[0].length-1)}$${pipe.length}</definedName></definedNames></workbook>`],
     ["xl/_rels/workbook.xml.rels",`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`],
     ["xl/styles.xml",`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font></fonts><fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF071A69"/></patternFill></fill></fills><borders count="1"><border/></borders><cellStyleXfs count="1"><xf/></cellStyleXfs><cellXfs count="2"><xf xfId="0"/><xf xfId="0" fontId="1" fillId="2" applyFont="1" applyFill="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`],
-    ["xl/worksheets/sheet1.xml",sheetXml(meet,[11,7,7,16,28,24,24,18,16,12,5,22,12,8,8,30,20,20,20,30,12,10,12,14,10,40,36,14])],
+    ["xl/worksheets/sheet1.xml",sheetXml(meet,[11,7,7,16,28,24,24,18,16,12,5,22,12,8,8,30,20,20,20,30,12,10,12,14,10,40,36,14,26,10,10,36,36,30])],
     ["xl/worksheets/sheet2.xml",sheetXml(pipe,[6,28,12,14,11,14,36,18,12,24,24])]];
   saveFile("ITIC-2026-meetings.xlsx",zip(files))}
 document.getElementById("xlsxBtn").addEventListener("click",exportXlsx);
+// ---------- Word report (.docx, built in the browser) ----------
+const wx_=s=>xe(s);
+const wRun=(t,o={})=>`<w:r><w:rPr>${o.b?"<w:b/>":""}${o.i?"<w:i/>":""}${o.c?`<w:color w:val="${o.c}"/>`:""}${o.sz?`<w:sz w:val="${o.sz}"/>`:""}</w:rPr>${String(t??"").split("\n").map((l,i)=>(i?"<w:br/>":"")+`<w:t xml:space="preserve">${wx_(l)}</w:t>`).join("")}</w:r>`;
+const wP=(t,o={})=>`<w:p><w:pPr>${o.st?`<w:pStyle w:val="${o.st}"/>`:""}${o.after!=null?`<w:spacing w:after="${o.after}"/>`:""}${o.keep?"<w:keepNext/>":""}</w:pPr>${Array.isArray(t)?t.join(""):wRun(t,o)}</w:p>`;
+const wCell=(c,w,hdr)=>`<w:tc><w:tcPr><w:tcW w:w="${w}" w:type="dxa"/>${hdr?'<w:shd w:val="clear" w:color="auto" w:fill="071A69"/>':""}</w:tcPr>${String(c??"").split("\n\n").map(x=>wP(x,{b:hdr,c:hdr?"FFFFFF":"",after:40})).join("")}</w:tc>`;
+const wTbl=(rows,ws,hdr=true)=>`<w:tbl><w:tblPr><w:tblW w:w="${ws.reduce((a,b)=>a+b,0)}" w:type="dxa"/><w:tblBorders>${["top","left","bottom","right","insideH","insideV"].map(b=>`<w:${b} w:val="single" w:sz="4" w:space="0" w:color="BFC8D8"/>`).join("")}</w:tblBorders><w:tblCellMar><w:left w:w="80" w:type="dxa"/><w:right w:w="80" w:type="dxa"/></w:tblCellMar></w:tblPr><w:tblGrid>${ws.map(w=>`<w:gridCol w:w="${w}"/>`).join("")}</w:tblGrid>${rows.map((r,ri)=>`<w:tr>${ri===0&&hdr?'<w:trPr><w:tblHeader/></w:trPr>':""}${r.map((c,ci)=>wCell(c,ws[ci],ri===0&&hdr)).join("")}</w:tr>`).join("")}</w:tbl>${wP("",{after:120})}`;
+const kv=(rows)=>wTbl(rows.filter(r=>r[1]!==""&&r[1]!=null),[2600,6400],false);
+function imgDims(src){return new Promise(res=>{const i=new Image();i.onload=()=>res([i.naturalWidth||4,i.naturalHeight||3]);i.onerror=()=>res([4,3]);i.src=src})}
+const b64bytes=d=>{const s=atob(d.split(",")[1]||"");const u=new Uint8Array(s.length);for(let i=0;i<s.length;i++)u[i]=s.charCodeAt(i);return u};
+const wImg=(rid,id,w,h)=>{const cx=Math.min(3240000,w*9525),cy=Math.round(cx*h/w);return `<w:p><w:r><w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="${cx}" cy="${cy}"/><wp:docPr id="${id}" name="Card ${id}"/><a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:nvPicPr><pic:cNvPr id="${id}" name="card${id}.jpg"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><a:blip r:embed="${rid}"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${cx}" cy="${cy}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p>`};
+async function exportDocx(only){
+  const list=(only||sorted).filter(m=>only||m.status!=="cancelled");const one=!!only;const media=[];let body="";
+  const reported=m=>m.note&&(m.note.outcome||m.note.txt||m.note.next||+m.note.rating||m.status==="done"||m.status==="noshow");
+  const who=PEOPLE[ME]?PEOPLE[ME].name:"HWA team";const today=new Date().toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"});
+  body+=wP(one?`Meeting report: ${list[0].co}`:"ITIC Global 2026 · Istanbul — Meeting Report",{st:"Title"});
+  body+=wP(`HealthWatch Assistance S.A. · Thessaloniki, Greece · Prepared ${today} by ${who}`,{c:"5A6781",after:240});
+  if(!one){
+    const held=list.filter(m=>m.status==="done"),ns=list.filter(m=>m.status==="noshow"),rep=list.filter(reported);
+    const rated=rep.filter(m=>+m.note.rating);const avg=rated.length?(rated.reduce((a,m)=>a+ +m.note.rating,0)/rated.length).toFixed(1):"—";
+    const rows=pipeRows();const tot=rows.reduce((a,r)=>a+r.v,0),wt=rows.reduce((a,r)=>a+r.w,0);
+    body+=wP("1. Summary",{st:"Heading1"});
+    body+=kv([["Meetings planned",String(list.length)],["Meetings held",String(held.length)],["No-shows",String(ns.length)],["Walk-up meetings",String(list.filter(m=>m.walk).length)],["Meetings with a report",String(rep.length)],["Average meeting rating",rated.length?`${avg} / 5 (${rated.length} rated)`:"—"],["Pipeline: estimated annual value",eur(tot)],["Pipeline: weighted by likelihood",eur(wt)],["Follow-ups not yet sent",String(list.filter(m=>m.status==="done"&&!(m.note&&m.note.fuSent)).length)]]);
+    const oc=Object.entries(OUTC).map(([k,v])=>[v,String(list.filter(m=>m.note&&m.note.outcome===k).length)]).filter(r=>r[1]!=="0");
+    if(oc.length){body+=wP("Outcomes",{st:"Heading2"});body+=wTbl([["Outcome","Meetings"],...oc],[7000,2000])}
+    const svc=SERVICES.map(v=>[v,String(list.filter(m=>m.note&&(m.note.svc||[]).includes(v)).length)]).filter(r=>r[1]!=="0").sort((a,b)=>b[1]-a[1]);
+    if(svc.length){body+=wP("Services clients asked about",{st:"Heading2"});body+=wTbl([["Service","Clients"],...svc],[7000,2000])}
+    if(rows.length){body+=wP("2. Top opportunities",{st:"Heading1"});body+=wTbl([["#","Company","Outcome","Rating","Est. value","Weighted","Next step","Owner"],...rows.slice(0,20).map((r,i)=>[String(i+1),r.m.co,OUTC[r.m.note.outcome]||ST[r.m.status],+r.m.note.rating?stars(+r.m.note.rating):"",r.v?eur(r.v):"—",r.v?eur(r.w):"—",r.m.note.next||"—",short(PEOPLE[r.m.note.owner]?r.m.note.owner:r.m.lead)])],[400,1700,1500,900,1000,1000,1900,1100])}
+    const fu=list.filter(m=>m.note&&(m.note.next||m.note.actions));
+    if(fu.length){body+=wP(`${rows.length?3:2}. Follow-up actions`,{st:"Heading1"});body+=wTbl([["Company","Next step / actions agreed","Owner","Priority","Sent"],...fu.sort((a,b)=>({high:0,med:1,low:2}[a.note.prio]??3)-({high:0,med:1,low:2}[b.note.prio]??3)).map(m=>[m.co,[m.note.next,m.note.actions].filter(Boolean).join("\n"),short(PEOPLE[m.note.owner]?m.note.owner:m.lead),PRIO[m.note.prio]||"",m.note.fuSent?"Yes":"No"])],[1900,4300,1200,900,700])}
+    body+=wP("Meeting by meeting",{st:"Heading1"});}
+  let lastDay="";
+  for(const m of list){const n=m.note||{};
+    if(!one&&m.day!==lastDay){lastDay=m.day;body+=wP(DAYS[m.day],{st:"Heading2"})}
+    body+=wP(`${m.co} — ${m.start}–${m.end}, ${m.loc}`,{st:"Heading3",keep:true});
+    body+=kv([["Contact",m.contact+(n.email?` · ${n.email}`:"")],["Type / country",`${m.type} · ${m.country}`],["HWA team",m.team.map(p=>short(p)+(m.lead===p?" (lead)":"")).join(", ")],["Status",ST[m.status]||m.status],["Outcome",OUTC[n.outcome]||""],["Rating",+n.rating?`${stars(+n.rating)} ${RATE[+n.rating]}`:""],["Follow-up priority",PRIO[n.prio]||""],["Est. annual value",+n.value>0?`${eur(+n.value)} · ${LIK[+n.lik]||""}`:""],["Follow-up owner",n.owner&&PEOPLE[n.owner]?PEOPLE[n.owner].name:""],["Follow-up email sent",n.fuSent?"Yes":(reported(m)?"No":"")],["Report by",n.by&&PEOPLE[n.by]?PEOPLE[n.by].name+(n.at?" · "+new Date(+n.at).toLocaleString("en-GB",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}):""):""]]);
+    if(!reported(m)){body+=wP("No report entered yet. Goal was: "+m.goal,{i:true,c:"5A6781",after:200});continue}
+    const sec=(h,t)=>t&&String(t).trim()?wP(h,{b:true,c:"D14430",after:40,keep:true})+wP(String(t).trim(),{after:160}):"";
+    body+=sec("Meeting report",n.txt)+sec("What they need",n.needs)+sec("Services of interest",(n.svc||[]).map(x=>"• "+x).join("\n"))+sec("Actions agreed",(n.actions||"").split("\n").filter(x=>x.trim()).map(x=>"• "+x.trim()).join("\n"))+sec("Next step",n.next)+sec("Concerns / risks",n.risks)+sec("Volumes · current provider · decision-maker",[n.vol,n.prov,n.dec].filter(Boolean).join(" · "));
+    if(typeof n.card==="string"&&n.card.startsWith("data:image/jpeg")){const id=media.length+1;const [w,h]=await imgDims(n.card);media.push(b64bytes(n.card));body+=wP("Business card",{b:true,c:"D14430",after:40,keep:true})+wImg("rIdImg"+id,id,w,h)}}
+  const doc=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"><w:body>${body}<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1134" w:right="1134" w:bottom="1134" w:left="1134" w:header="567" w:footer="567" w:gutter="0"/></w:sectPr></w:body></w:document>`;
+  const styles=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Calibri" w:hAnsi="Calibri" w:cs="Calibri" w:eastAsia="Calibri"/><w:sz w:val="21"/><w:lang w:val="en-GB"/></w:rPr></w:rPrDefault><w:pPrDefault><w:pPr><w:spacing w:after="80" w:line="264" w:lineRule="auto"/></w:pPr></w:pPrDefault></w:docDefaults><w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/></w:style><w:style w:type="paragraph" w:styleId="Title"><w:name w:val="Title"/><w:basedOn w:val="Normal"/><w:rPr><w:b/><w:color w:val="071A69"/><w:sz w:val="40"/></w:rPr></w:style><w:style w:type="paragraph" w:styleId="Heading1"><w:name w:val="heading 1"/><w:basedOn w:val="Normal"/><w:pPr><w:keepNext/><w:spacing w:before="360" w:after="120"/><w:outlineLvl w:val="0"/></w:pPr><w:rPr><w:b/><w:color w:val="071A69"/><w:sz w:val="32"/></w:rPr></w:style><w:style w:type="paragraph" w:styleId="Heading2"><w:name w:val="heading 2"/><w:basedOn w:val="Normal"/><w:pPr><w:keepNext/><w:spacing w:before="280" w:after="100"/><w:outlineLvl w:val="1"/></w:pPr><w:rPr><w:b/><w:color w:val="D14430"/><w:sz w:val="26"/></w:rPr></w:style><w:style w:type="paragraph" w:styleId="Heading3"><w:name w:val="heading 3"/><w:basedOn w:val="Normal"/><w:pPr><w:keepNext/><w:spacing w:before="240" w:after="80"/><w:outlineLvl w:val="2"/></w:pPr><w:rPr><w:b/><w:color w:val="071A69"/><w:sz w:val="24"/></w:rPr></w:style></w:styles>`;
+  const files=[["[Content_Types].xml",`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="jpg" ContentType="image/jpeg"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/></Types>`],
+    ["_rels/.rels",`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>`],
+    ["word/_rels/document.xml.rels",`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rIdStyles" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>${media.map((_,i)=>`<Relationship Id="rIdImg${i+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/card${i+1}.jpg"/>`).join("")}</Relationships>`],
+    ["word/document.xml",doc],["word/styles.xml",styles],...media.map((b,i)=>[`word/media/card${i+1}.jpg`,b])];
+  saveFile(one?`ITIC-2026-report-${list[0].co.replace(/[^\w]+/g,"-").slice(0,40)}.docx`:`ITIC-2026-meeting-report-${new Date().toISOString().slice(0,10)}.docx`,zip(files,"application/vnd.openxmlformats-officedocument.wordprocessingml.document"))}
+document.getElementById("docxBtn").addEventListener("click",()=>exportDocx());
 // ---------- my day ----------
 let ONLYME=false;try{ONLYME=localStorage.getItem("itic-onlyme")==="1"}catch(e){}
 const mineTog=document.getElementById("mineTog");
